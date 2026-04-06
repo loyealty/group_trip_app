@@ -1,195 +1,143 @@
 import 'package:flutter/material.dart';
 
-class MainHomeScreen extends StatefulWidget {
+class MainHomeScreen extends StatelessWidget {
   const MainHomeScreen({super.key});
 
   @override
-  State<MainHomeScreen> createState() => _MainHomeScreenState();
-}
-
-class _MainHomeScreenState extends State<MainHomeScreen> {
-  int currentIndex = 0;
-
-  final TripSummary trip = const TripSummary(
-    title: '부산 여행',
-    dateRange: '4월 10일 - 4월 12일',
-    location: '부산',
-    memberCountText: '5명 참여 중',
-    statusText: '일정 조율 진행 중',
-    imageUrl:
-        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop',
-  );
-
-  final UpcomingSchedule schedule = const UpcomingSchedule(
-    monthDay: '4/10',
-    title: '부산 여행 일정 조율',
-    location: '부산',
-    participantCount: 5,
-  );
-
-  final List<DestinationCandidate> destinations = const [
-    DestinationCandidate(
-      title: '광안리 해수욕장',
-      voteText: '4/5',
-      extraCount: 2,
+  Widget build(BuildContext context) {
+    const TripSummary trip = TripSummary(
+      title: '부산 여행',
+      dateRange: '4월 10일 - 4월 12일',
+      location: '부산',
+      memberCountText: '5명 참여 중',
+      statusText: '일정 조율 진행 중',
       imageUrl:
           'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop',
-    ),
-    DestinationCandidate(
-      title: '해동용궁사',
-      voteText: '5/5',
-      extraCount: 3,
-      imageUrl:
-          'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop',
-    ),
-  ];
+    );
 
-  final ExpenseSummary expense = const ExpenseSummary(
-    totalText: '₩ 250,000',
-    title: '부산 여행 정산',
-    subtitle: '그룹 경비',
-    buttonText: '정산하기',
-  );
+    const UpcomingSchedule schedule = UpcomingSchedule(
+      monthDay: '4/10',
+      title: '부산 여행 일정 조율',
+      location: '부산',
+      participantCount: 5,
+    );
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      bottomNavigationBar: NavigationBar(
-        height: 74,
-        selectedIndex: currentIndex,
-        backgroundColor: Colors.white,
-        indicatorColor: const Color(0xFFDCEEFF),
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        onDestinationSelected: (index) {
-          setState(() {
-            currentIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_rounded),
-            selectedIcon: Icon(Icons.home_rounded),
-            label: '홈',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.calendar_month_rounded),
-            selectedIcon: Icon(Icons.calendar_month_rounded),
-            label: '일정',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.map_rounded),
-            selectedIcon: Icon(Icons.map_rounded),
-            label: '여행',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet_rounded),
-            selectedIcon: Icon(Icons.account_balance_wallet_rounded),
-            label: '정산',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_rounded),
-            selectedIcon: Icon(Icons.person_rounded),
-            label: '마이',
-          ),
-        ],
+    const List<DestinationCandidate> destinations = [
+      DestinationCandidate(
+        title: '광안리 해수욕장',
+        voteText: '4/5',
+        extraCount: 2,
+        imageUrl:
+            'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop',
       ),
-      body: SafeArea(
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFFF8FBFF), Color(0xFFEEF6FF)],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
+      DestinationCandidate(
+        title: '해동용궁사',
+        voteText: '5/5',
+        extraCount: 3,
+        imageUrl:
+            'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop',
+      ),
+    ];
+
+    const ExpenseSummary expense = ExpenseSummary(
+      totalText: '₩ 250,000',
+      title: '부산 여행 정산',
+      subtitle: '그룹 경비',
+      buttonText: '정산하기',
+    );
+
+    return SafeArea(
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFF8FBFF), Color(0xFFEEF6FF)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildTopBar(),
-                      const SizedBox(height: 20),
-                      _buildSectionShell(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildSectionHeader(
-                              title: '나의 그룹 여행',
-                              icon: Icons.public_rounded,
-                              showMore: false,
-                            ),
-                            const SizedBox(height: 14),
-                            _TripHeroCard(trip: trip),
-                          ],
-                        ),
+        ),
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildTopBar(),
+                    const SizedBox(height: 20),
+                    _buildSectionShell(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionHeader(
+                            title: '나의 그룹 여행',
+                            icon: Icons.public_rounded,
+                            showMore: false,
+                          ),
+                          const SizedBox(height: 14),
+                          const _TripHeroCard(trip: trip),
+                        ],
                       ),
-                      const SizedBox(height: 18),
-                      _buildSectionShell(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildSectionHeader(
-                              title: '다가오는 일정',
-                              icon: Icons.auto_awesome_rounded,
-                            ),
-                            const SizedBox(height: 14),
-                            _ScheduleCard(schedule: schedule),
-                          ],
-                        ),
+                    ),
+                    const SizedBox(height: 18),
+                    _buildSectionShell(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionHeader(
+                            title: '다가오는 일정',
+                            icon: Icons.auto_awesome_rounded,
+                          ),
+                          const SizedBox(height: 14),
+                          const _ScheduleCard(schedule: schedule),
+                        ],
                       ),
-                      const SizedBox(height: 18),
-                      _buildSectionShell(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildSectionHeader(
-                              title: '여행지 후보',
-                              icon: Icons.map_outlined,
-                            ),
-                            const SizedBox(height: 14),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _DestinationCard(
-                                    item: destinations[0],
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: _DestinationCard(
-                                    item: destinations[1],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                    ),
+                    const SizedBox(height: 18),
+                    _buildSectionShell(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionHeader(
+                            title: '여행지 후보',
+                            icon: Icons.map_outlined,
+                          ),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _DestinationCard(item: destinations[0]),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _DestinationCard(item: destinations[1]),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 18),
-                      _buildSectionShell(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildSectionHeader(
-                              title: '비용 정산',
-                              icon: Icons.wallet_travel_rounded,
-                              trailingText: expense.buttonText,
-                            ),
-                            const SizedBox(height: 14),
-                            _ExpenseCard(expense: expense),
-                          ],
-                        ),
+                    ),
+                    const SizedBox(height: 18),
+                    _buildSectionShell(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionHeader(
+                            title: '비용 정산',
+                            icon: Icons.wallet_travel_rounded,
+                            trailingText: expense.buttonText,
+                          ),
+                          const SizedBox(height: 14),
+                          const _ExpenseCard(expense: expense),
+                        ],
                       ),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -217,7 +165,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
             border: Border.all(color: Colors.white, width: 2),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF99BCE3).withOpacity(0.18),
+                color: Color(0xFF99BCE3).withOpacity(0.18),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
