@@ -3,7 +3,9 @@ import '../models/trip_room.dart';
 import '../services/api_service.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final VoidCallback onScheduleButtonPressed;
+
+  const HomeScreen({super.key, required this.onScheduleButtonPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +44,6 @@ class HomeScreen extends StatelessWidget {
                     style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
                   ),
                   const SizedBox(height: 24),
-
                   if (tripRooms.isEmpty)
                     Container(
                       width: double.infinity,
@@ -70,9 +71,7 @@ class HomeScreen extends StatelessWidget {
                     )
                   else
                     ...tripRooms.map((trip) => _buildTripCard(trip)),
-
                   const SizedBox(height: 20),
-
                   _buildSectionTitle('다가오는 일정'),
                   const SizedBox(height: 12),
                   _buildInfoCard(
@@ -80,9 +79,7 @@ class HomeScreen extends StatelessWidget {
                     title: '일정 기능 연결 예정',
                     subtitle: '다음 단계에서 실제 일정 데이터를 연결할 수 있어요.',
                   ),
-
                   const SizedBox(height: 20),
-
                   _buildSectionTitle('비용 정산'),
                   const SizedBox(height: 12),
                   _buildInfoCard(
@@ -162,7 +159,7 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              _buildStatusChip(trip.status),
+              _buildStatusChip(_getKoreanStatus(trip.status)),
             ],
           ),
           const SizedBox(height: 18),
@@ -171,13 +168,13 @@ class HomeScreen extends StatelessWidget {
           _buildDetailRow(
             Icons.date_range_rounded,
             '여행 기간',
-            '${trip.startDate} ~ ${trip.endDate}',
+            '${_formatDate(trip.startDate)} ~ ${_formatDate(trip.endDate)}',
           ),
           const SizedBox(height: 18),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: onScheduleButtonPressed,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF60A5FA),
                 foregroundColor: Colors.white,
@@ -196,6 +193,23 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getKoreanStatus(String status) {
+    switch (status) {
+      case 'PLANNING':
+        return '계획 중';
+      case 'CONFIRMED':
+        return '확정';
+      case 'COMPLETED':
+        return '완료';
+      default:
+        return status;
+    }
+  }
+
+  String _formatDate(String date) {
+    return date.replaceAll('-', '.');
   }
 
   Widget _buildStatusChip(String status) {

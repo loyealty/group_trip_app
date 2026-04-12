@@ -15,8 +15,14 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int currentIndex = 0;
 
-  final List<Widget> pages = [
-    const HomeScreen(),
+  void moveToScheduleTab() {
+    setState(() {
+      currentIndex = 1;
+    });
+  }
+
+  late final List<Widget> pages = [
+    HomeScreen(onScheduleButtonPressed: moveToScheduleTab),
     const ScheduleScreen(),
     const TravelScreen(),
     const ExpenseScreen(),
