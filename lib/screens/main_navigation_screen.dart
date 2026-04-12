@@ -15,12 +15,12 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int currentIndex = 0;
 
-  final List<Widget> pages = const [
-    MainHomeScreen(),
-    ScheduleScreen(),
-    TravelScreen(),
-    ExpenseScreen(),
-    MyScreen(),
+  final List<Widget> pages = [
+    const HomeScreen(),
+    const ScheduleScreen(),
+    const TravelScreen(),
+    const ExpenseScreen(),
+    const MyScreen(),
   ];
 
   @override
