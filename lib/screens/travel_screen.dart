@@ -5,265 +5,306 @@ class TravelScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<TravelPlace> places = [
-      const TravelPlace(
-        title: '광안리 해수욕장',
-        subtitle: '바다 전망과 야경이 인기인 장소',
-        voteText: '4 / 5',
-        imageUrl:
-            'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop',
+    final List<DestinationItem> destinations = [
+      const DestinationItem(
+        name: '해운대 해수욕장',
+        region: '부산 해운대구',
+        description: '바다 풍경과 산책을 즐기기 좋은 대표 여행지',
+        votes: 4,
       ),
-      const TravelPlace(
-        title: '해동용궁사',
-        subtitle: '부산 대표 명소, 바다와 사찰 풍경',
-        voteText: '5 / 5',
-        imageUrl:
-            'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop',
+      const DestinationItem(
+        name: '광안리 해수욕장',
+        region: '부산 수영구',
+        description: '야경과 맛집이 많아 저녁 일정으로 좋은 장소',
+        votes: 3,
       ),
-      const TravelPlace(
-        title: '감천문화마을',
-        subtitle: '포토 스팟이 많은 관광지',
-        voteText: '3 / 5',
-        imageUrl:
-            'https://images.unsplash.com/photo-1494526585095-c41746248156?q=80&w=1200&auto=format&fit=crop',
+      const DestinationItem(
+        name: '해동용궁사',
+        region: '부산 기장군',
+        description: '바다와 함께 볼 수 있는 유명한 사찰 명소',
+        votes: 2,
+      ),
+      const DestinationItem(
+        name: '감천문화마을',
+        region: '부산 사하구',
+        description: '사진 촬영과 산책 코스로 인기 있는 여행지',
+        votes: 1,
       ),
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF4F8FC),
-        elevation: 0,
-        title: const Text(
-          '여행지 후보',
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-            color: Color(0xFF334155),
-          ),
-        ),
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFF8FBFF), Color(0xFFEEF6FF)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+      backgroundColor: const Color(0xFFF4F8FF),
+      body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          padding: const EdgeInsets.all(20),
           children: [
-            const _TravelTopCard(),
-            const SizedBox(height: 18),
-            ...places.map(
-              (place) => Padding(
-                padding: const EdgeInsets.only(bottom: 14),
-                child: _TravelPlaceCard(place: place),
+            const Text(
+              '여행지 후보',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E2A3A),
               ),
             ),
-            FilledButton(
-              onPressed: () {},
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF6EB5F8),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(22),
+            const SizedBox(height: 8),
+            const Text(
+              '함께 갈 여행지를 비교하고 선택해보세요',
+              style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+            ),
+            const SizedBox(height: 24),
+            _buildSummaryCard(destinations.length),
+            const SizedBox(height: 24),
+            const Text(
+              '후보 목록',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E2A3A),
+              ),
+            ),
+            const SizedBox(height: 14),
+            ...destinations.map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: 14),
+                child: _buildDestinationCard(item),
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF60A5FA),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
-                textStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
+                child: const Text(
+                  '여행지 후보 추가',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                 ),
               ),
-              child: const Text('후보 추가'),
             ),
           ],
         ),
       ),
     );
   }
-}
 
-class _TravelTopCard extends StatelessWidget {
-  const _TravelTopCard();
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildSummaryCard(int count) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
-        borderRadius: BorderRadius.circular(28),
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFFFFF), Color(0xFFF7FBFF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFB6D4F0).withOpacity(0.22),
-            blurRadius: 22,
-            offset: const Offset(0, 10),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
+        border: Border.all(color: const Color(0xFFE5EEF9)),
       ),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            '부산 여행 후보지',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF334155),
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: const Color(0xFFDCEEFF),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.map_rounded,
+              color: Color(0xFF3B82F6),
+              size: 30,
             ),
           ),
-          SizedBox(height: 6),
-          Text(
-            '여행지 후보를 비교하고 투표할 수 있습니다',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF64748B),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '부산 여행 후보지',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E2A3A),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  '투표를 통해 여행지를 정할 수 있어요',
+                  style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '총 $count개의 후보지가 등록되어 있습니다',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF6B7280),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
     );
   }
-}
 
-class _TravelPlaceCard extends StatelessWidget {
-  final TravelPlace place;
-
-  const _TravelPlaceCard({required this.place});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildDestinationCard(DestinationItem item) {
     return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.96),
-        borderRadius: BorderRadius.circular(24),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFB6D4F0).withOpacity(0.14),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(color: const Color(0xFFE5EEF9)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            child: Stack(
-              children: [
-                Image.network(
-                  place.imageUrl,
-                  height: 170,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
+          Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEAF4FF),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.94),
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: Text(
-                      place.voteText,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF4D7FB5),
-                      ),
-                    ),
-                  ),
+                child: const Icon(
+                  Icons.place_rounded,
+                  color: Color(0xFF60A5FA),
+                  size: 28,
                 ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  place.title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF334155),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  place.subtitle,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Row(
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF5B8EC5),
-                          side: const BorderSide(color: Color(0xFFD7E9FB)),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                        ),
-                        child: const Text(
-                          '상세 보기',
-                          style: TextStyle(fontWeight: FontWeight.w800),
-                        ),
+                    Text(
+                      item.name,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E2A3A),
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: () {},
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF6EB5F8),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                        ),
-                        child: const Text(
-                          '투표하기',
-                          style: TextStyle(fontWeight: FontWeight.w800),
-                        ),
+                    const SizedBox(height: 4),
+                    Text(
+                      item.region,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF6B7280),
                       ),
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              _buildVoteChip(item.votes),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            item.description,
+            style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {},
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF60A5FA),
+                    side: const BorderSide(color: Color(0xFFBFDBFE)),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: const Text(
+                    '상세 보기',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF60A5FA),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: const Text(
+                    '투표하기',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
+
+  Widget _buildVoteChip(int votes) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE0F2FE),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        '$votes표',
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF0284C7),
+        ),
+      ),
+    );
+  }
 }
 
-class TravelPlace {
-  final String title;
-  final String subtitle;
-  final String voteText;
-  final String imageUrl;
+class DestinationItem {
+  final String name;
+  final String region;
+  final String description;
+  final int votes;
 
-  const TravelPlace({
-    required this.title,
-    required this.subtitle,
-    required this.voteText,
-    required this.imageUrl,
+  const DestinationItem({
+    required this.name,
+    required this.region,
+    required this.description,
+    required this.votes,
   });
 }
