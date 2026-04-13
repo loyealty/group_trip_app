@@ -37,131 +37,127 @@ class ScheduleScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF4F8FC),
-        elevation: 0,
-        title: const Text(
-          '여행 일정',
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-            color: Color(0xFF334155),
-          ),
-        ),
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFF8FBFF), Color(0xFFEEF6FF)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+      backgroundColor: const Color(0xFFF4F8FF),
+      body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          padding: const EdgeInsets.all(20),
           children: [
-            const _ScheduleSummaryCard(),
-            const SizedBox(height: 18),
+            const Text(
+              '여행 일정',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E2A3A),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '현재 등록된 일정을 확인해보세요',
+              style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+            ),
+            const SizedBox(height: 24),
+            _buildSummaryCard(schedules.length),
+            const SizedBox(height: 24),
             const Text(
               '일정 목록',
               style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF334155),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E2A3A),
               ),
             ),
             const SizedBox(height: 14),
             ...schedules.map(
               (item) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _ScheduleItemCard(item: item),
+                padding: const EdgeInsets.only(bottom: 14),
+                child: _buildScheduleCard(item),
               ),
             ),
-            const SizedBox(height: 8),
-            FilledButton(
-              onPressed: () {},
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF6EB5F8),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(22),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF60A5FA),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
-                textStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
+                child: const Text(
+                  '일정 추가',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                 ),
               ),
-              child: const Text('일정 추가'),
             ),
           ],
         ),
       ),
     );
   }
-}
 
-class _ScheduleSummaryCard extends StatelessWidget {
-  const _ScheduleSummaryCard();
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildSummaryCard(int count) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
-        borderRadius: BorderRadius.circular(28),
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFFFFF), Color(0xFFF7FBFF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFB6D4F0).withOpacity(0.22),
-            blurRadius: 22,
-            offset: const Offset(0, 10),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
+        border: Border.all(color: const Color(0xFFE5EEF9)),
       ),
       child: Row(
         children: [
           Container(
-            width: 58,
-            height: 58,
+            width: 56,
+            height: 56,
             decoration: BoxDecoration(
-              color: const Color(0xFFEAF4FF),
-              borderRadius: BorderRadius.circular(18),
+              color: const Color(0xFFDCEEFF),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(
               Icons.calendar_month_rounded,
-              color: Color(0xFF6EADE8),
+              color: Color(0xFF3B82F6),
               size: 30,
             ),
           ),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '부산 여행',
+                const Text(
+                  '부산 여행 일정',
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF334155),
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E2A3A),
                   ),
                 ),
-                SizedBox(height: 4),
-                Text(
-                  '4월 10일 - 4월 12일',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF64748B),
-                  ),
+                const SizedBox(height: 4),
+                const Text(
+                  '2026.04.10 ~ 2026.04.12',
+                  style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  '총 4개의 일정이 등록되어 있습니다',
-                  style: TextStyle(
+                  '총 $count개의 일정이 등록되어 있습니다',
+                  style: const TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF7C8CA0),
+                    color: Color(0xFF6B7280),
                   ),
                 ),
               ],
@@ -171,30 +167,31 @@ class _ScheduleSummaryCard extends StatelessWidget {
       ),
     );
   }
-}
 
-class _ScheduleItemCard extends StatelessWidget {
-  final ScheduleItem item;
-
-  const _ScheduleItemCard({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildScheduleCard(ScheduleItem item) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.96),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE4EEF9)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: const Color(0xFFE5EEF9)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 64,
+            width: 68,
             padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F7FF),
+              color: const Color(0xFFEAF4FF),
               borderRadius: BorderRadius.circular(18),
             ),
             child: Column(
@@ -203,8 +200,8 @@ class _ScheduleItemCard extends StatelessWidget {
                   item.date,
                   style: const TextStyle(
                     fontSize: 17,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF4D7FB5),
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF3B82F6),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -212,8 +209,8 @@ class _ScheduleItemCard extends StatelessWidget {
                   item.time,
                   style: const TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF64748B),
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF6B7280),
                   ),
                 ),
               ],
@@ -228,26 +225,35 @@ class _ScheduleItemCard extends StatelessWidget {
                   item.title,
                   style: const TextStyle(
                     fontSize: 17,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF334155),
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E2A3A),
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  item.location,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF5B8EC5),
-                  ),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.place_rounded,
+                      size: 16,
+                      color: Color(0xFF60A5FA),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      item.location,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF5B8EC5),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 Text(
                   item.description,
                   style: const TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF64748B),
+                    color: Color(0xFF6B7280),
                   ),
                 ),
               ],
