@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/app_section_header.dart';
 
 class MyScreen extends StatelessWidget {
   const MyScreen({super.key});
@@ -11,21 +12,11 @@ class MyScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            const Text(
-              '마이 페이지',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1E2A3A),
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              '내 여행 정보와 활동 내역을 확인해보세요',
-              style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+            const AppSectionHeader(
+              title: '마이 페이지',
+              subtitle: '내 여행 정보와 활동 내역을 확인해보세요',
             ),
             const SizedBox(height: 24),
-
             _buildProfileCard(),
             const SizedBox(height: 16),
 

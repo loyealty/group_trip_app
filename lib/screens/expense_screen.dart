@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/app_section_header.dart';
 
 class ExpenseScreen extends StatelessWidget {
   const ExpenseScreen({super.key});
@@ -42,21 +43,11 @@ class ExpenseScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            const Text(
-              '비용 정산',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1E2A3A),
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              '여행 중 사용한 비용과 정산 내역을 확인해보세요',
-              style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+            const AppSectionHeader(
+              title: '비용 정산',
+              subtitle: '여행 중 사용한 비용과 정산 내역을 확인해보세요',
             ),
             const SizedBox(height: 24),
-
             _buildSummaryCard(totalAmount, perPersonAmount),
             const SizedBox(height: 16),
 

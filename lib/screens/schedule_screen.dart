@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/app_section_header.dart';
 
 class ScheduleScreen extends StatelessWidget {
   const ScheduleScreen({super.key});
@@ -42,18 +43,9 @@ class ScheduleScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            const Text(
-              '여행 일정',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1E2A3A),
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              '현재 등록된 일정을 확인해보세요',
-              style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+            const AppSectionHeader(
+              title: '여행 일정',
+              subtitle: '현재 등록된 일정을 확인해보세요',
             ),
             const SizedBox(height: 24),
             _buildSummaryCard(schedules.length),

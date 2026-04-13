@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/app_section_header.dart';
 
 class TravelScreen extends StatelessWidget {
   const TravelScreen({super.key});
@@ -38,18 +39,9 @@ class TravelScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            const Text(
-              '여행지 후보',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1E2A3A),
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              '함께 갈 여행지를 비교하고 선택해보세요',
-              style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+            const AppSectionHeader(
+              title: '여행지 후보',
+              subtitle: '함께 갈 여행지를 비교하고 선택해보세요',
             ),
             const SizedBox(height: 24),
             _buildSummaryCard(destinations.length),
