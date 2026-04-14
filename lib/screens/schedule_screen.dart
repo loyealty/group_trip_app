@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../models/schedule.dart';
+import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_header.dart';
@@ -9,79 +11,78 @@ class ScheduleScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<ScheduleItem> schedules = [
-      const ScheduleItem(
-        date: '4/10',
-        time: '10:00',
-        title: '부산 도착 및 체크인',
-        location: '해운대 호텔',
-        description: '숙소 체크인 후 근처 카페 방문',
-      ),
-      const ScheduleItem(
-        date: '4/11',
-        time: '09:30',
-        title: '광안리 해수욕장',
-        location: '광안리',
-        description: '해변 산책 및 점심 식사',
-      ),
-      const ScheduleItem(
-        date: '4/11',
-        time: '15:00',
-        title: '해동용궁사 방문',
-        location: '기장',
-        description: '사진 촬영 및 자유 일정',
-      ),
-      const ScheduleItem(
-        date: '4/12',
-        time: '11:00',
-        title: '브런치 후 복귀',
-        location: '서면',
-        description: '브런치 후 서울로 이동',
-      ),
-    ];
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            const AppSectionHeader(
-              title: '여행 일정',
-              subtitle: '현재 등록된 일정을 확인해보세요',
-            ),
-            const SizedBox(height: 24),
-            AppSummaryCard(
-              icon: Icons.calendar_month_rounded,
-              title: '부산 여행 일정',
-              line1: '2026.04.10 ~ 2026.04.12',
-              line2: '총 ${schedules.length}개의 일정이 등록되어 있습니다',
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              '일정 목록',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.title,
-              ),
-            ),
-            const SizedBox(height: 14),
-            ...schedules.map(
-              (item) => Padding(
-                padding: const EdgeInsets.only(bottom: 14),
-                child: _buildScheduleCard(item),
-              ),
-            ),
-            const SizedBox(height: 10),
-            AppPrimaryButton(text: '일정 추가', onPressed: () {}),
-          ],
+        child: FutureBuilder<List<Schedule>>(
+          future: ApiService.getSchedulesByTripRoomId(1),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Center(child: Text('에러: ${snapshot.error}'));
+            }
+
+            final schedules = snapshot.data ?? [];
+
+            return ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                const AppSectionHeader(
+                  title: '여행 일정',
+                  subtitle: '현재 등록된 일정을 확인해보세요',
+                ),
+                const SizedBox(height: 24),
+                AppSummaryCard(
+                  icon: Icons.calendar_month_rounded,
+                  title: '부산 여행 일정',
+                  line1: '2026.04.10 ~ 2026.04.12',
+                  line2: '총 ${schedules.length}개의 일정이 등록되어 있습니다',
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  '일정 목록',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.title,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                if (schedules.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: const Text(
+                      '등록된 일정이 없습니다.',
+                      style: TextStyle(fontSize: 14, color: AppColors.subtitle),
+                    ),
+                  )
+                else
+                  ...schedules.map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: _buildScheduleCard(item),
+                    ),
+                  ),
+                const SizedBox(height: 10),
+                AppPrimaryButton(text: '일정 추가', onPressed: () {}),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildScheduleCard(ScheduleItem item) {
+  Widget _buildScheduleCard(Schedule item) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -110,7 +111,7 @@ class ScheduleScreen extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  item.date,
+                  _formatMonthDay(item.scheduleDate),
                   style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
@@ -119,7 +120,7 @@ class ScheduleScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  item.time,
+                  item.scheduleTime,
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -151,12 +152,14 @@ class ScheduleScreen extends StatelessWidget {
                       color: AppColors.primary,
                     ),
                     const SizedBox(width: 6),
-                    Text(
-                      item.location,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF5B8EC5),
+                    Expanded(
+                      child: Text(
+                        item.location,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF5B8EC5),
+                        ),
                       ),
                     ),
                   ],
@@ -176,20 +179,13 @@ class ScheduleScreen extends StatelessWidget {
       ),
     );
   }
-}
 
-class ScheduleItem {
-  final String date;
-  final String time;
-  final String title;
-  final String location;
-  final String description;
-
-  const ScheduleItem({
-    required this.date,
-    required this.time,
-    required this.title,
-    required this.location,
-    required this.description,
-  });
+  String _formatMonthDay(String date) {
+    if (date.length >= 10) {
+      final month = date.substring(5, 7);
+      final day = date.substring(8, 10);
+      return '${int.parse(month)}/${int.parse(day)}';
+    }
+    return date;
+  }
 }
