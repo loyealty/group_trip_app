@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_header.dart';
+import '../widgets/app_stat_card.dart';
 import '../widgets/app_summary_card.dart';
 
 class ExpenseScreen extends StatelessWidget {
@@ -39,7 +42,7 @@ class ExpenseScreen extends StatelessWidget {
     const int perPersonAmount = totalAmount ~/ memberCount;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F8FF),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(20),
@@ -56,11 +59,10 @@ class ExpenseScreen extends StatelessWidget {
               line2: '1인당 ${_formatAmount(perPersonAmount)}원',
             ),
             const SizedBox(height: 16),
-
             Row(
               children: [
                 Expanded(
-                  child: _buildSmallInfoCard(
+                  child: AppStatCard(
                     icon: Icons.group_rounded,
                     title: '참여 인원',
                     value: '$memberCount명',
@@ -68,7 +70,7 @@ class ExpenseScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _buildSmallInfoCard(
+                  child: AppStatCard(
                     icon: Icons.receipt_long_rounded,
                     title: '지출 건수',
                     value: '${expenses.length}건',
@@ -76,91 +78,26 @@ class ExpenseScreen extends StatelessWidget {
                 ),
               ],
             ),
-
             const SizedBox(height: 24),
-
             const Text(
               '지출 내역',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E2A3A),
+                color: AppColors.title,
               ),
             ),
             const SizedBox(height: 14),
-
             ...expenses.map(
               (item) => Padding(
                 padding: const EdgeInsets.only(bottom: 14),
                 child: _buildExpenseCard(item),
               ),
             ),
-
             const SizedBox(height: 10),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF60A5FA),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: const Text(
-                  '지출 추가',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
+            AppPrimaryButton(text: '지출 추가', onPressed: () {}),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildSmallInfoCard({
-    required IconData icon,
-    required String title,
-    required String value,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: Border.all(color: const Color(0xFFE5EEF9)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: const Color(0xFF60A5FA), size: 24),
-          const SizedBox(height: 10),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E2A3A),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -179,7 +116,7 @@ class ExpenseScreen extends StatelessWidget {
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: const Color(0xFFE5EEF9)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         children: [
@@ -187,12 +124,12 @@ class ExpenseScreen extends StatelessWidget {
             width: 58,
             height: 58,
             decoration: BoxDecoration(
-              color: const Color(0xFFEAF4FF),
+              color: AppColors.lightBlue2,
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(
               Icons.payments_rounded,
-              color: Color(0xFF60A5FA),
+              color: AppColors.primary,
               size: 28,
             ),
           ),
@@ -206,7 +143,7 @@ class ExpenseScreen extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E2A3A),
+                    color: AppColors.title,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -214,7 +151,7 @@ class ExpenseScreen extends StatelessWidget {
                   '${item.category} · ${item.payer} 결제',
                   style: const TextStyle(
                     fontSize: 13,
-                    color: Color(0xFF6B7280),
+                    color: AppColors.subtitle,
                   ),
                 ),
               ],
@@ -225,7 +162,7 @@ class ExpenseScreen extends StatelessWidget {
             style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF3B82F6),
+              color: AppColors.primaryDark,
             ),
           ),
         ],
