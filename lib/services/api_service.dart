@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/trip_room.dart';
 import '../models/schedule.dart';
 import '../models/destination_candidate.dart';
+import '../models/expense.dart';
 
 class ApiService {
   static const String baseUrl = 'http://10.0.2.2:8080';
@@ -42,6 +43,19 @@ class ApiService {
       return data.map((e) => DestinationCandidate.fromJson(e)).toList();
     } else {
       throw Exception('여행지 후보 데이터를 불러오지 못했습니다.');
+    }
+  }
+
+  static Future<List<Expense>> getExpensesByTripRoomId(int tripRoomId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/expenses/trip-room/$tripRoomId'),
+    );
+
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body);
+      return data.map((e) => Expense.fromJson(e)).toList();
+    } else {
+      throw Exception('정산 데이터를 불러오지 못했습니다.');
     }
   }
 }

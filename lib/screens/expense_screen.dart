@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../models/expense.dart';
+import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_header.dart';
@@ -10,99 +12,106 @@ class ExpenseScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<ExpenseItem> expenses = [
-      const ExpenseItem(
-        category: '숙소',
-        title: '해운대 호텔',
-        payer: '김지윤',
-        amount: 180000,
-      ),
-      const ExpenseItem(
-        category: '식비',
-        title: '광안리 점심 식사',
-        payer: '민수',
-        amount: 72000,
-      ),
-      const ExpenseItem(
-        category: '교통',
-        title: '택시 이동',
-        payer: '지윤',
-        amount: 28000,
-      ),
-      const ExpenseItem(
-        category: '카페',
-        title: '브런치 카페',
-        payer: '수빈',
-        amount: 36000,
-      ),
-    ];
-
-    const int totalAmount = 316000;
-    const int memberCount = 4;
-    const int perPersonAmount = totalAmount ~/ memberCount;
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            const AppSectionHeader(
-              title: '비용 정산',
-              subtitle: '여행 중 사용한 비용과 정산 내역을 확인해보세요',
-            ),
-            const SizedBox(height: 24),
-            AppSummaryCard(
-              icon: Icons.account_balance_wallet_rounded,
-              title: '부산 여행 정산 요약',
-              line1: '총 지출 ${_formatAmount(totalAmount)}원',
-              line2: '1인당 ${_formatAmount(perPersonAmount)}원',
-            ),
-            const SizedBox(height: 16),
-            Row(
+        child: FutureBuilder<List<Expense>>(
+          future: ApiService.getExpensesByTripRoomId(1),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Center(child: Text('에러: ${snapshot.error}'));
+            }
+
+            final expenses = snapshot.data ?? [];
+            final int totalAmount = expenses.fold(
+              0,
+              (sum, item) => sum + item.amount,
+            );
+            const int memberCount = 4;
+            final int perPersonAmount = expenses.isEmpty
+                ? 0
+                : totalAmount ~/ memberCount;
+
+            return ListView(
+              padding: const EdgeInsets.all(20),
               children: [
-                Expanded(
-                  child: AppStatCard(
-                    icon: Icons.group_rounded,
-                    title: '참여 인원',
-                    value: '$memberCount명',
+                const AppSectionHeader(
+                  title: '비용 정산',
+                  subtitle: '여행 중 사용한 비용과 정산 내역을 확인해보세요',
+                ),
+                const SizedBox(height: 24),
+                AppSummaryCard(
+                  icon: Icons.account_balance_wallet_rounded,
+                  title: '부산 여행 정산 요약',
+                  line1: '총 지출 ${_formatAmount(totalAmount)}원',
+                  line2: '1인당 ${_formatAmount(perPersonAmount)}원',
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppStatCard(
+                        icon: Icons.group_rounded,
+                        title: '참여 인원',
+                        value: '${memberCount}명',
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: AppStatCard(
+                        icon: Icons.receipt_long_rounded,
+                        title: '지출 건수',
+                        value: '${expenses.length}건',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  '지출 내역',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.title,
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: AppStatCard(
-                    icon: Icons.receipt_long_rounded,
-                    title: '지출 건수',
-                    value: '${expenses.length}건',
+                const SizedBox(height: 14),
+                if (expenses.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: const Text(
+                      '등록된 지출 내역이 없습니다.',
+                      style: TextStyle(fontSize: 14, color: AppColors.subtitle),
+                    ),
+                  )
+                else
+                  ...expenses.map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: _buildExpenseCard(item),
+                    ),
                   ),
-                ),
+                const SizedBox(height: 10),
+                AppPrimaryButton(text: '지출 추가', onPressed: () {}),
               ],
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              '지출 내역',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.title,
-              ),
-            ),
-            const SizedBox(height: 14),
-            ...expenses.map(
-              (item) => Padding(
-                padding: const EdgeInsets.only(bottom: 14),
-                child: _buildExpenseCard(item),
-              ),
-            ),
-            const SizedBox(height: 10),
-            AppPrimaryButton(text: '지출 추가', onPressed: () {}),
-          ],
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildExpenseCard(ExpenseItem item) {
+  Widget _buildExpenseCard(Expense item) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -185,18 +194,4 @@ class ExpenseScreen extends StatelessWidget {
 
     return buffer.toString();
   }
-}
-
-class ExpenseItem {
-  final String category;
-  final String title;
-  final String payer;
-  final int amount;
-
-  const ExpenseItem({
-    required this.category,
-    required this.title,
-    required this.payer,
-    required this.amount,
-  });
 }
