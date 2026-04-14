@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/app_section_header.dart';
+import '../widgets/app_summary_card.dart';
 
 class ExpenseScreen extends StatelessWidget {
   const ExpenseScreen({super.key});
@@ -48,7 +49,12 @@ class ExpenseScreen extends StatelessWidget {
               subtitle: '여행 중 사용한 비용과 정산 내역을 확인해보세요',
             ),
             const SizedBox(height: 24),
-            _buildSummaryCard(totalAmount, perPersonAmount),
+            AppSummaryCard(
+              icon: Icons.account_balance_wallet_rounded,
+              title: '부산 여행 정산 요약',
+              line1: '총 지출 ${_formatAmount(totalAmount)}원',
+              line2: '1인당 ${_formatAmount(perPersonAmount)}원',
+            ),
             const SizedBox(height: 16),
 
             Row(
@@ -113,78 +119,6 @@ class ExpenseScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildSummaryCard(int totalAmount, int perPersonAmount) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFFFFFF), Color(0xFFF7FBFF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-        ],
-        border: Border.all(color: const Color(0xFFE5EEF9)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: const Color(0xFFDCEEFF),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(
-              Icons.account_balance_wallet_rounded,
-              color: Color(0xFF3B82F6),
-              size: 30,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  '부산 여행 정산 요약',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E2A3A),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '총 지출 ${_formatAmount(totalAmount)}원',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF6B7280),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '1인당 ${_formatAmount(perPersonAmount)}원',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF6B7280),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/app_section_header.dart';
+import '../widgets/app_summary_card.dart';
 
 class ScheduleScreen extends StatelessWidget {
   const ScheduleScreen({super.key});
@@ -48,7 +49,12 @@ class ScheduleScreen extends StatelessWidget {
               subtitle: '현재 등록된 일정을 확인해보세요',
             ),
             const SizedBox(height: 24),
-            _buildSummaryCard(schedules.length),
+            AppSummaryCard(
+              icon: Icons.calendar_month_rounded,
+              title: '부산 여행 일정',
+              line1: '2026.04.10 ~ 2026.04.12',
+              line2: '총 ${schedules.length}개의 일정이 등록되어 있습니다',
+            ),
             const SizedBox(height: 24),
             const Text(
               '일정 목록',
@@ -87,75 +93,6 @@ class ScheduleScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildSummaryCard(int count) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFFFFFF), Color(0xFFF7FBFF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-        ],
-        border: Border.all(color: const Color(0xFFE5EEF9)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: const Color(0xFFDCEEFF),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(
-              Icons.calendar_month_rounded,
-              color: Color(0xFF3B82F6),
-              size: 30,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  '부산 여행 일정',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E2A3A),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  '2026.04.10 ~ 2026.04.12',
-                  style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '총 $count개의 일정이 등록되어 있습니다',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF6B7280),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
