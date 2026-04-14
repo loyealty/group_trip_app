@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../models/destination_candidate.dart';
+import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_header.dart';
@@ -9,75 +11,78 @@ class TravelScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<DestinationItem> destinations = [
-      const DestinationItem(
-        name: '해운대 해수욕장',
-        region: '부산 해운대구',
-        description: '바다 풍경과 산책을 즐기기 좋은 대표 여행지',
-        votes: 4,
-      ),
-      const DestinationItem(
-        name: '광안리 해수욕장',
-        region: '부산 수영구',
-        description: '야경과 맛집이 많아 저녁 일정으로 좋은 장소',
-        votes: 3,
-      ),
-      const DestinationItem(
-        name: '해동용궁사',
-        region: '부산 기장군',
-        description: '바다와 함께 볼 수 있는 유명한 사찰 명소',
-        votes: 2,
-      ),
-      const DestinationItem(
-        name: '감천문화마을',
-        region: '부산 사하구',
-        description: '사진 촬영과 산책 코스로 인기 있는 여행지',
-        votes: 1,
-      ),
-    ];
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            const AppSectionHeader(
-              title: '여행지 후보',
-              subtitle: '함께 갈 여행지를 비교하고 선택해보세요',
-            ),
-            const SizedBox(height: 24),
-            AppSummaryCard(
-              icon: Icons.map_rounded,
-              title: '부산 여행 후보지',
-              line1: '투표를 통해 여행지를 정할 수 있어요',
-              line2: '총 ${destinations.length}개의 후보지가 등록되어 있습니다',
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              '후보 목록',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.title,
-              ),
-            ),
-            const SizedBox(height: 14),
-            ...destinations.map(
-              (item) => Padding(
-                padding: const EdgeInsets.only(bottom: 14),
-                child: _buildDestinationCard(item),
-              ),
-            ),
-            const SizedBox(height: 10),
-            AppPrimaryButton(text: '여행지 후보 추가', onPressed: () {}),
-          ],
+        child: FutureBuilder<List<DestinationCandidate>>(
+          future: ApiService.getDestinationCandidatesByTripRoomId(1),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Center(child: Text('에러: ${snapshot.error}'));
+            }
+
+            final destinations = snapshot.data ?? [];
+
+            return ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                const AppSectionHeader(
+                  title: '여행지 후보',
+                  subtitle: '함께 갈 여행지를 비교하고 선택해보세요',
+                ),
+                const SizedBox(height: 24),
+                AppSummaryCard(
+                  icon: Icons.map_rounded,
+                  title: '부산 여행 후보지',
+                  line1: '투표를 통해 여행지를 정할 수 있어요',
+                  line2: '총 ${destinations.length}개의 후보지가 등록되어 있습니다',
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  '후보 목록',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.title,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                if (destinations.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: const Text(
+                      '등록된 여행지 후보가 없습니다.',
+                      style: TextStyle(fontSize: 14, color: AppColors.subtitle),
+                    ),
+                  )
+                else
+                  ...destinations.map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: _buildDestinationCard(item),
+                    ),
+                  ),
+                const SizedBox(height: 10),
+                AppPrimaryButton(text: '여행지 후보 추가', onPressed: () {}),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildDestinationCard(DestinationItem item) {
+  Widget _buildDestinationCard(DestinationCandidate item) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -206,18 +211,4 @@ class TravelScreen extends StatelessWidget {
       ),
     );
   }
-}
-
-class DestinationItem {
-  final String name;
-  final String region;
-  final String description;
-  final int votes;
-
-  const DestinationItem({
-    required this.name,
-    required this.region,
-    required this.description,
-    required this.votes,
-  });
 }
