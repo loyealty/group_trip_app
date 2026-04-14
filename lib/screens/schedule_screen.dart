@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_header.dart';
 import '../widgets/app_summary_card.dart';
 
@@ -39,7 +41,7 @@ class ScheduleScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F8FF),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(20),
@@ -61,7 +63,7 @@ class ScheduleScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E2A3A),
+                color: AppColors.title,
               ),
             ),
             const SizedBox(height: 14),
@@ -72,25 +74,7 @@ class ScheduleScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF60A5FA),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: const Text(
-                  '일정 추가',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
+            AppPrimaryButton(text: '일정 추가', onPressed: () {}),
           ],
         ),
       ),
@@ -111,7 +95,7 @@ class ScheduleScreen extends StatelessWidget {
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: const Color(0xFFE5EEF9)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,7 +104,7 @@ class ScheduleScreen extends StatelessWidget {
             width: 68,
             padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFFEAF4FF),
+              color: AppColors.lightBlue2,
               borderRadius: BorderRadius.circular(18),
             ),
             child: Column(
@@ -130,7 +114,7 @@ class ScheduleScreen extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF3B82F6),
+                    color: AppColors.primaryDark,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -139,7 +123,7 @@ class ScheduleScreen extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF6B7280),
+                    color: AppColors.subtitle,
                   ),
                 ),
               ],
@@ -155,7 +139,7 @@ class ScheduleScreen extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E2A3A),
+                    color: AppColors.title,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -164,7 +148,7 @@ class ScheduleScreen extends StatelessWidget {
                     const Icon(
                       Icons.place_rounded,
                       size: 16,
-                      color: Color(0xFF60A5FA),
+                      color: AppColors.primary,
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -182,7 +166,7 @@ class ScheduleScreen extends StatelessWidget {
                   item.description,
                   style: const TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF6B7280),
+                    color: AppColors.subtitle,
                   ),
                 ),
               ],

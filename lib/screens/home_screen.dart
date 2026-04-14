@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/trip_room.dart';
 import '../services/api_service.dart';
+import '../theme/app_colors.dart';
+import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_header.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -11,7 +13,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F8FF),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: FutureBuilder<List<TripRoom>>(
           future: ApiService.getTripRooms(),
@@ -56,7 +58,7 @@ class HomeScreen extends StatelessWidget {
                           '여행방 데이터가 없습니다.',
                           style: TextStyle(
                             fontSize: 15,
-                            color: Color(0xFF6B7280),
+                            color: AppColors.subtitle,
                           ),
                         ),
                       ),
@@ -107,7 +109,7 @@ class HomeScreen extends StatelessWidget {
             offset: const Offset(0, 6),
           ),
         ],
-        border: Border.all(color: const Color(0xFFE5EEF9)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,12 +120,12 @@ class HomeScreen extends StatelessWidget {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFDCEEFF),
+                  color: AppColors.lightBlue,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Icon(
                   Icons.flight_takeoff_rounded,
-                  color: Color(0xFF3B82F6),
+                  color: AppColors.primaryDark,
                   size: 28,
                 ),
               ),
@@ -137,7 +139,7 @@ class HomeScreen extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E2A3A),
+                        color: AppColors.title,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -145,7 +147,7 @@ class HomeScreen extends StatelessWidget {
                       trip.description,
                       style: const TextStyle(
                         fontSize: 13,
-                        color: Color(0xFF6B7280),
+                        color: AppColors.subtitle,
                       ),
                     ),
                   ],
@@ -163,25 +165,7 @@ class HomeScreen extends StatelessWidget {
             '${_formatDate(trip.startDate)} ~ ${_formatDate(trip.endDate)}',
           ),
           const SizedBox(height: 18),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: onScheduleButtonPressed,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF60A5FA),
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              child: const Text(
-                '일정 조율하기',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-              ),
-            ),
-          ),
+          AppPrimaryButton(text: '일정 조율하기', onPressed: onScheduleButtonPressed),
         ],
       ),
     );
@@ -208,7 +192,7 @@ class HomeScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFE0F2FE),
+        color: AppColors.chipBackground,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
@@ -216,7 +200,7 @@ class HomeScreen extends StatelessWidget {
         style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.bold,
-          color: Color(0xFF0284C7),
+          color: AppColors.chipText,
         ),
       ),
     );
@@ -225,7 +209,7 @@ class HomeScreen extends StatelessWidget {
   Widget _buildDetailRow(IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: const Color(0xFF60A5FA)),
+        Icon(icon, size: 18, color: AppColors.primary),
         const SizedBox(width: 10),
         Text(
           '$label  ',
@@ -238,7 +222,7 @@ class HomeScreen extends StatelessWidget {
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+            style: const TextStyle(fontSize: 14, color: AppColors.subtitle),
           ),
         ),
       ],
@@ -251,7 +235,7 @@ class HomeScreen extends StatelessWidget {
       style: const TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
-        color: Color(0xFF1E2A3A),
+        color: AppColors.title,
       ),
     );
   }
@@ -281,10 +265,10 @@ class HomeScreen extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFEAF4FF),
+              color: AppColors.lightBlue2,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(icon, color: const Color(0xFF60A5FA)),
+            child: Icon(icon, color: AppColors.primary),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -296,7 +280,7 @@ class HomeScreen extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E2A3A),
+                    color: AppColors.title,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -304,7 +288,7 @@ class HomeScreen extends StatelessWidget {
                   subtitle,
                   style: const TextStyle(
                     fontSize: 13,
-                    color: Color(0xFF6B7280),
+                    color: AppColors.subtitle,
                   ),
                 ),
               ],

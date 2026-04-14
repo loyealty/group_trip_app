@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_header.dart';
 import '../widgets/app_summary_card.dart';
 
@@ -35,7 +37,7 @@ class TravelScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F8FF),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(20),
@@ -57,7 +59,7 @@ class TravelScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E2A3A),
+                color: AppColors.title,
               ),
             ),
             const SizedBox(height: 14),
@@ -68,25 +70,7 @@ class TravelScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF60A5FA),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: const Text(
-                  '여행지 후보 추가',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
+            AppPrimaryButton(text: '여행지 후보 추가', onPressed: () {}),
           ],
         ),
       ),
@@ -107,7 +91,7 @@ class TravelScreen extends StatelessWidget {
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: const Color(0xFFE5EEF9)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,12 +102,12 @@ class TravelScreen extends StatelessWidget {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEAF4FF),
+                  color: AppColors.lightBlue2,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Icon(
                   Icons.place_rounded,
-                  color: Color(0xFF60A5FA),
+                  color: AppColors.primary,
                   size: 28,
                 ),
               ),
@@ -137,7 +121,7 @@ class TravelScreen extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E2A3A),
+                        color: AppColors.title,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -145,7 +129,7 @@ class TravelScreen extends StatelessWidget {
                       item.region,
                       style: const TextStyle(
                         fontSize: 13,
-                        color: Color(0xFF6B7280),
+                        color: AppColors.subtitle,
                       ),
                     ),
                   ],
@@ -157,7 +141,7 @@ class TravelScreen extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             item.description,
-            style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+            style: const TextStyle(fontSize: 14, color: AppColors.subtitle),
           ),
           const SizedBox(height: 16),
           Row(
@@ -166,7 +150,7 @@ class TravelScreen extends StatelessWidget {
                 child: OutlinedButton(
                   onPressed: () {},
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF60A5FA),
+                    foregroundColor: AppColors.primary,
                     side: const BorderSide(color: Color(0xFFBFDBFE)),
                     padding: const EdgeInsets.symmetric(vertical: 13),
                     shape: RoundedRectangleBorder(
@@ -184,7 +168,7 @@ class TravelScreen extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF60A5FA),
+                    backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 13),
@@ -209,7 +193,7 @@ class TravelScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFE0F2FE),
+        color: AppColors.chipBackground,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
@@ -217,7 +201,7 @@ class TravelScreen extends StatelessWidget {
         style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.bold,
-          color: Color(0xFF0284C7),
+          color: AppColors.chipText,
         ),
       ),
     );
