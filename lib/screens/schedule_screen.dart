@@ -5,9 +5,42 @@ import '../theme/app_colors.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_header.dart';
 import '../widgets/app_summary_card.dart';
+import 'add_schedule_screen.dart';
 
-class ScheduleScreen extends StatelessWidget {
+class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
+
+  @override
+  State<ScheduleScreen> createState() => _ScheduleScreenState();
+}
+
+class _ScheduleScreenState extends State<ScheduleScreen> {
+  late Future<List<Schedule>> scheduleFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    scheduleFuture = ApiService.getSchedulesByTripRoomId(1);
+  }
+
+  void refreshSchedules() {
+    setState(() {
+      scheduleFuture = ApiService.getSchedulesByTripRoomId(1);
+    });
+  }
+
+  Future<void> moveToAddScheduleScreen() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddScheduleScreen(tripRoomId: 1),
+      ),
+    );
+
+    if (result == true) {
+      refreshSchedules();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +48,7 @@ class ScheduleScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: FutureBuilder<List<Schedule>>(
-          future: ApiService.getSchedulesByTripRoomId(1),
+          future: scheduleFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -73,7 +106,10 @@ class ScheduleScreen extends StatelessWidget {
                     ),
                   ),
                 const SizedBox(height: 10),
-                AppPrimaryButton(text: '일정 추가', onPressed: () {}),
+                AppPrimaryButton(
+                  text: '일정 추가',
+                  onPressed: moveToAddScheduleScreen,
+                ),
               ],
             );
           },
