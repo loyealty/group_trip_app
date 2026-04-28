@@ -5,9 +5,42 @@ import '../theme/app_colors.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_header.dart';
 import '../widgets/app_summary_card.dart';
+import 'add_destination_screen.dart';
 
-class TravelScreen extends StatelessWidget {
+class TravelScreen extends StatefulWidget {
   const TravelScreen({super.key});
+
+  @override
+  State<TravelScreen> createState() => _TravelScreenState();
+}
+
+class _TravelScreenState extends State<TravelScreen> {
+  late Future<List<DestinationCandidate>> destinationFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    destinationFuture = ApiService.getDestinationCandidatesByTripRoomId(1);
+  }
+
+  void refreshDestinations() {
+    setState(() {
+      destinationFuture = ApiService.getDestinationCandidatesByTripRoomId(1);
+    });
+  }
+
+  Future<void> moveToAddDestinationScreen() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddDestinationScreen(tripRoomId: 1),
+      ),
+    );
+
+    if (result == true) {
+      refreshDestinations();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +48,7 @@ class TravelScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: FutureBuilder<List<DestinationCandidate>>(
-          future: ApiService.getDestinationCandidatesByTripRoomId(1),
+          future: destinationFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -73,7 +106,10 @@ class TravelScreen extends StatelessWidget {
                     ),
                   ),
                 const SizedBox(height: 10),
-                AppPrimaryButton(text: '여행지 후보 추가', onPressed: () {}),
+                AppPrimaryButton(
+                  text: '여행지 후보 추가',
+                  onPressed: moveToAddDestinationScreen,
+                ),
               ],
             );
           },
