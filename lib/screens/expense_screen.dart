@@ -6,9 +6,42 @@ import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_header.dart';
 import '../widgets/app_stat_card.dart';
 import '../widgets/app_summary_card.dart';
+import 'add_expense_screen.dart';
 
-class ExpenseScreen extends StatelessWidget {
+class ExpenseScreen extends StatefulWidget {
   const ExpenseScreen({super.key});
+
+  @override
+  State<ExpenseScreen> createState() => _ExpenseScreenState();
+}
+
+class _ExpenseScreenState extends State<ExpenseScreen> {
+  late Future<List<Expense>> expenseFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    expenseFuture = ApiService.getExpensesByTripRoomId(1);
+  }
+
+  void refreshExpenses() {
+    setState(() {
+      expenseFuture = ApiService.getExpensesByTripRoomId(1);
+    });
+  }
+
+  Future<void> moveToAddExpenseScreen() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddExpenseScreen(tripRoomId: 1),
+      ),
+    );
+
+    if (result == true) {
+      refreshExpenses();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +49,7 @@ class ExpenseScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: FutureBuilder<List<Expense>>(
-          future: ApiService.getExpensesByTripRoomId(1),
+          future: expenseFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -27,11 +60,14 @@ class ExpenseScreen extends StatelessWidget {
             }
 
             final expenses = snapshot.data ?? [];
+
             final int totalAmount = expenses.fold(
               0,
               (sum, item) => sum + item.amount,
             );
+
             const int memberCount = 4;
+
             final int perPersonAmount = expenses.isEmpty
                 ? 0
                 : totalAmount ~/ memberCount;
@@ -102,7 +138,10 @@ class ExpenseScreen extends StatelessWidget {
                     ),
                   ),
                 const SizedBox(height: 10),
-                AppPrimaryButton(text: '지출 추가', onPressed: () {}),
+                AppPrimaryButton(
+                  text: '지출 추가',
+                  onPressed: moveToAddExpenseScreen,
+                ),
               ],
             );
           },
