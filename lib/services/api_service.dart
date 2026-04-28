@@ -46,6 +46,16 @@ class ApiService {
     }
   }
 
+  static Future<void> voteDestinationCandidate(int id) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/destination-candidates/$id/vote'),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('여행지 투표에 실패했습니다.');
+    }
+  }
+
   static Future<List<Expense>> getExpensesByTripRoomId(int tripRoomId) async {
     final response = await http.get(
       Uri.parse('$baseUrl/api/expenses/trip-room/$tripRoomId'),

@@ -42,6 +42,26 @@ class _TravelScreenState extends State<TravelScreen> {
     }
   }
 
+  Future<void> voteDestination(DestinationCandidate item) async {
+    try {
+      await ApiService.voteDestinationCandidate(item.id);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('투표가 완료되었습니다.')));
+
+      refreshDestinations();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('투표 실패: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -207,7 +227,9 @@ class _TravelScreenState extends State<TravelScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    voteDestination(item);
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
