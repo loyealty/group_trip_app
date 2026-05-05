@@ -16,15 +16,15 @@ class AppStatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(17),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: const Color(0xFF1E3A5F).withOpacity(0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 9),
           ),
         ],
         border: Border.all(color: AppColors.border),
@@ -32,19 +32,35 @@ class AppStatCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: AppColors.primary, size: 24),
-          const SizedBox(height: 10),
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: AppColors.primarySoft,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: AppColors.primaryDark, size: 21),
+          ),
+          const SizedBox(height: 13),
           Text(
             title,
-            style: const TextStyle(fontSize: 13, color: AppColors.subtitle),
+            style: const TextStyle(
+              fontSize: 13,
+              height: 1.3,
+              fontWeight: FontWeight.w600,
+              color: AppColors.subtitle,
+              letterSpacing: -0.2,
+            ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 5),
           Text(
             value,
             style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
+              fontSize: 19,
+              height: 1.2,
+              fontWeight: FontWeight.w900,
               color: AppColors.title,
+              letterSpacing: -0.4,
             ),
           ),
         ],

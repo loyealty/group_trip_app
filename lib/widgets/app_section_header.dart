@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 class AppSectionHeader extends StatelessWidget {
   final String title;
@@ -12,23 +13,34 @@ class AppSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1E2A3A),
+    return Padding(
+      padding: const EdgeInsets.only(left: 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 28,
+              height: 1.15,
+              fontWeight: FontWeight.w900,
+              color: AppColors.title,
+              letterSpacing: -0.8,
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          subtitle,
-          style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
-        ),
-      ],
+          const SizedBox(height: 9),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              fontSize: 14,
+              height: 1.45,
+              fontWeight: FontWeight.w500,
+              color: AppColors.subtitle,
+              letterSpacing: -0.2,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
