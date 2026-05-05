@@ -33,7 +33,7 @@ class HomeScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHeroHeader(),
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 20),
                   _buildSectionTitle('나의 여행방', '진행 중인 그룹 여행을 확인해보세요'),
                   const SizedBox(height: 12),
                   if (tripRooms.isEmpty)
@@ -70,40 +70,40 @@ class HomeScreen extends StatelessWidget {
   Widget _buildHeroHeader() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: AppColors.heroGradient,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(26),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.28),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
+            color: AppColors.primary.withOpacity(0.22),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Stack(
         children: [
           Positioned(
-            right: -24,
-            top: -26,
+            right: -20,
+            top: -24,
             child: Container(
-              width: 104,
-              height: 104,
+              width: 86,
+              height: 86,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.13),
+                color: Colors.white.withOpacity(0.12),
                 shape: BoxShape.circle,
               ),
             ),
           ),
           Positioned(
-            right: 24,
-            bottom: -42,
+            right: 34,
+            bottom: -38,
             child: Container(
-              width: 92,
-              height: 92,
+              width: 74,
+              height: 74,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.11),
+                color: Colors.white.withOpacity(0.10),
                 shape: BoxShape.circle,
               ),
             ),
@@ -113,8 +113,8 @@ class HomeScreen extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 11,
-                  vertical: 7,
+                  horizontal: 10,
+                  vertical: 6,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.18),
@@ -124,30 +124,30 @@ class HomeScreen extends StatelessWidget {
                 child: const Text(
                   'GROUP TRIP PLANNER',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 10,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
                     letterSpacing: 0.4,
                   ),
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 14),
               const Text(
-                '함께 계획하고,\n함께 떠나는 여행',
+                '함께 떠나는 여행',
                 style: TextStyle(
-                  fontSize: 27,
-                  height: 1.18,
+                  fontSize: 25,
+                  height: 1.15,
                   fontWeight: FontWeight.w900,
                   color: Colors.white,
                   letterSpacing: -0.8,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Text(
-                '일정, 여행지 후보, 비용 정산까지\n한 번에 관리해보세요.',
+                '일정과 정산을 한 번에 관리해보세요.',
                 style: TextStyle(
-                  fontSize: 14,
-                  height: 1.45,
+                  fontSize: 13,
+                  height: 1.4,
                   fontWeight: FontWeight.w500,
                   color: Colors.white.withOpacity(0.86),
                   letterSpacing: -0.2,
