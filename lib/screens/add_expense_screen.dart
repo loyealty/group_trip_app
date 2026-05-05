@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/expense.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
+import '../widgets/app_primary_button.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   const AddExpenseScreen({super.key, required this.tripRoomId, this.expense});
@@ -120,6 +121,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     required TextEditingController controller,
     required String label,
     required String hintText,
+    required IconData icon,
     TextInputType keyboardType = TextInputType.text,
   }) {
     return Column(
@@ -129,29 +131,170 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           label,
           style: const TextStyle(
             fontSize: 14,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w800,
             color: AppColors.title,
+            letterSpacing: -0.2,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 9),
         TextField(
           controller: controller,
           keyboardType: keyboardType,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.title,
+            letterSpacing: -0.2,
+          ),
           decoration: InputDecoration(
             hintText: hintText,
+            hintStyle: const TextStyle(
+              fontSize: 14,
+              color: AppColors.subtitle,
+              fontWeight: FontWeight.w500,
+            ),
+            prefixIcon: Icon(icon, color: AppColors.primaryDark, size: 21),
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 46,
+              minHeight: 46,
+            ),
             filled: true,
             fillColor: Colors.white,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
-              vertical: 14,
+              vertical: 16,
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(18),
               borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(color: AppColors.primaryDark),
             ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget buildHeader() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1E3A5F).withOpacity(0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: AppColors.primarySoft,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: const Icon(
+              Icons.account_balance_wallet_rounded,
+              color: AppColors.primaryDark,
+              size: 26,
+            ),
+          ),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isEditMode ? '지출 정보 수정' : '새 지출 등록',
+                  style: const TextStyle(
+                    fontSize: 19,
+                    height: 1.25,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.title,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  isEditMode ? '등록된 지출 내역을 수정해보세요' : '여행 중 사용한 비용을 입력해보세요',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    height: 1.4,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.subtitle,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildFormCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1E3A5F).withOpacity(0.06),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          inputField(
+            controller: categoryController,
+            label: '카테고리',
+            hintText: '예: 식비',
+            icon: Icons.category_rounded,
+          ),
+          const SizedBox(height: 16),
+          inputField(
+            controller: titleController,
+            label: '지출 제목',
+            hintText: '예: 저녁 식사',
+            icon: Icons.receipt_long_rounded,
+          ),
+          const SizedBox(height: 16),
+          inputField(
+            controller: payerController,
+            label: '결제자',
+            hintText: '예: 김지윤',
+            icon: Icons.person_rounded,
+          ),
+          const SizedBox(height: 16),
+          inputField(
+            controller: amountController,
+            label: '금액',
+            hintText: '예: 48000',
+            icon: Icons.payments_rounded,
+            keyboardType: TextInputType.number,
+          ),
+        ],
+      ),
     );
   }
 
@@ -161,63 +304,25 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(isEditMode ? '지출 수정' : '지출 추가'),
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.background,
         foregroundColor: AppColors.title,
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
         child: Column(
           children: [
-            inputField(
-              controller: categoryController,
-              label: '카테고리',
-              hintText: '예: 식비',
-            ),
-            const SizedBox(height: 14),
-            inputField(
-              controller: titleController,
-              label: '지출 제목',
-              hintText: '예: 저녁 식사',
-            ),
-            const SizedBox(height: 14),
-            inputField(
-              controller: payerController,
-              label: '결제자',
-              hintText: '예: 김지윤',
-            ),
-            const SizedBox(height: 14),
-            inputField(
-              controller: amountController,
-              label: '금액',
-              hintText: '예: 48000',
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 28),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: isLoading ? null : saveExpense,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+            buildHeader(),
+            const SizedBox(height: 20),
+            buildFormCard(),
+            const SizedBox(height: 24),
+            isLoading
+                ? const CircularProgressIndicator()
+                : AppPrimaryButton(
+                    text: isEditMode ? '지출 수정' : '지출 저장',
+                    icon: isEditMode ? Icons.check_rounded : Icons.add_rounded,
+                    onPressed: saveExpense,
                   ),
-                ),
-                child: isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : Text(
-                        isEditMode ? '지출 수정' : '지출 저장',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-              ),
-            ),
           ],
         ),
       ),
