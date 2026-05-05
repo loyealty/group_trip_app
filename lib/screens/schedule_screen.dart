@@ -42,6 +42,66 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     }
   }
 
+  Future<void> moveToEditScheduleScreen(Schedule item) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            AddScheduleScreen(tripRoomId: item.tripRoomId, schedule: item),
+      ),
+    );
+
+    if (result == true) {
+      refreshSchedules();
+    }
+  }
+
+  Future<void> deleteSchedule(Schedule item) async {
+    final bool? result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('일정 삭제'),
+        content: Text('${item.title} 일정을 삭제하시겠습니까?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, false);
+            },
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
+            child: const Text('삭제', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (result != true) {
+      return;
+    }
+
+    try {
+      await ApiService.deleteSchedule(item.id);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('일정이 삭제되었습니다.')));
+
+      refreshSchedules();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('일정 삭제 실패: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -207,6 +267,26 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     fontSize: 14,
                     color: AppColors.subtitle,
                   ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        moveToEditScheduleScreen(item);
+                      },
+                      child: const Text('수정'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        deleteSchedule(item);
+                      },
+                      child: const Text(
+                        '삭제',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
