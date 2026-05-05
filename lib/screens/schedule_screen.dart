@@ -121,11 +121,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             final schedules = snapshot.data ?? [];
 
             return ListView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
               children: [
                 const AppSectionHeader(
                   title: '여행 일정',
-                  subtitle: '현재 등록된 일정을 확인해보세요',
+                  subtitle: '여행 일정을 확인하고 계획을 정리해보세요',
                 ),
                 const SizedBox(height: 24),
                 AppSummaryCard(
@@ -135,29 +135,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   line2: '총 ${schedules.length}개의 일정이 등록되어 있습니다',
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  '일정 목록',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.title,
-                  ),
-                ),
+                _buildListTitle('일정 목록'),
                 const SizedBox(height: 14),
                 if (schedules.isEmpty)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: const Text(
-                      '등록된 일정이 없습니다.',
-                      style: TextStyle(fontSize: 14, color: AppColors.subtitle),
-                    ),
-                  )
+                  _buildEmptyCard('등록된 일정이 없습니다.')
                 else
                   ...schedules.map(
                     (item) => Padding(
@@ -168,6 +149,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 const SizedBox(height: 10),
                 AppPrimaryButton(
                   text: '일정 추가',
+                  icon: Icons.add_rounded,
                   onPressed: moveToAddScheduleScreen,
                 ),
               ],
@@ -181,15 +163,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   Widget _buildScheduleCard(Schedule item) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(17),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(26),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: const Color(0xFF1E3A5F).withOpacity(0.07),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
           ),
         ],
         border: Border.all(color: AppColors.border),
@@ -199,10 +181,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         children: [
           Container(
             width: 68,
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.symmetric(vertical: 13),
             decoration: BoxDecoration(
-              color: AppColors.lightBlue2,
-              borderRadius: BorderRadius.circular(18),
+              gradient: const LinearGradient(
+                colors: [Color(0xFFEAF4FF), Color(0xFFDCEBFF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
               children: [
@@ -210,23 +196,26 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   _formatMonthDay(item.scheduleDate),
                   style: const TextStyle(
                     fontSize: 17,
-                    fontWeight: FontWeight.bold,
+                    height: 1.2,
+                    fontWeight: FontWeight.w900,
                     color: AppColors.primaryDark,
+                    letterSpacing: -0.4,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 5),
                 Text(
                   item.scheduleTime,
                   style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
                     color: AppColors.subtitle,
+                    letterSpacing: -0.2,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 15),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,56 +224,65 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   item.title,
                   style: const TextStyle(
                     fontSize: 17,
-                    fontWeight: FontWeight.bold,
+                    height: 1.25,
+                    fontWeight: FontWeight.w900,
                     color: AppColors.title,
+                    letterSpacing: -0.4,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 7),
                 Row(
                   children: [
                     const Icon(
                       Icons.place_rounded,
                       size: 16,
-                      color: AppColors.primary,
+                      color: AppColors.primaryDark,
                     ),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         item.location,
                         style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF5B8EC5),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.body,
+                          letterSpacing: -0.2,
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  item.description,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppColors.subtitle,
+                if (item.description.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    item.description,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      height: 1.4,
+                      color: AppColors.subtitle,
+                      letterSpacing: -0.2,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
+                ],
+                const SizedBox(height: 10),
                 Row(
                   children: [
-                    TextButton(
+                    _buildTextActionButton(
+                      text: '수정',
+                      icon: Icons.edit_rounded,
+                      color: AppColors.primaryDark,
                       onPressed: () {
                         moveToEditScheduleScreen(item);
                       },
-                      child: const Text('수정'),
                     ),
-                    TextButton(
+                    const SizedBox(width: 14),
+                    _buildTextActionButton(
+                      text: '삭제',
+                      icon: Icons.delete_outline_rounded,
+                      color: AppColors.danger,
                       onPressed: () {
                         deleteSchedule(item);
                       },
-                      child: const Text(
-                        '삭제',
-                        style: TextStyle(color: Colors.red),
-                      ),
                     ),
                   ],
                 ),
@@ -292,6 +290,62 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTextActionButton({
+    required String text,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 14),
+      label: Text(text),
+      style: TextButton.styleFrom(
+        foregroundColor: color,
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        textStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 19,
+        fontWeight: FontWeight.w900,
+        color: AppColors.title,
+        letterSpacing: -0.5,
+      ),
+    );
+  }
+
+  Widget _buildEmptyCard(String text) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 14,
+          color: AppColors.subtitle,
+          letterSpacing: -0.2,
+        ),
       ),
     );
   }

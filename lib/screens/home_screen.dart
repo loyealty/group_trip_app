@@ -48,14 +48,14 @@ class HomeScreen extends StatelessWidget {
                   _buildInfoCard(
                     icon: Icons.calendar_today_rounded,
                     title: '다가오는 일정',
-                    subtitle: '등록된 일정을 확인하고 여행 계획을 정리해보세요.',
+                    subtitle: '등록된 일정을 한눈에 확인해요.',
                     badgeText: '일정',
                   ),
                   const SizedBox(height: 12),
                   _buildInfoCard(
                     icon: Icons.account_balance_wallet_rounded,
                     title: '비용 정산',
-                    subtitle: '여행 비용과 분담 내역을 관리할 수 있어요.',
+                    subtitle: '여행 비용과 정산 내역을 확인해요.',
                     badgeText: '정산',
                   ),
                 ],

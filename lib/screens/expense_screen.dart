@@ -133,11 +133,11 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                 : totalAmount ~/ memberCount;
 
             return ListView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
               children: [
                 const AppSectionHeader(
                   title: '비용 정산',
-                  subtitle: '여행 중 사용한 비용과 정산 내역을 확인해보세요',
+                  subtitle: '여행 비용과 정산 내역을 한눈에 확인해보세요',
                 ),
                 const SizedBox(height: 24),
                 AppSummaryCard(
@@ -167,29 +167,10 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  '지출 내역',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.title,
-                  ),
-                ),
+                _buildListTitle('지출 내역'),
                 const SizedBox(height: 14),
                 if (expenses.isEmpty)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: const Text(
-                      '등록된 지출 내역이 없습니다.',
-                      style: TextStyle(fontSize: 14, color: AppColors.subtitle),
-                    ),
-                  )
+                  _buildEmptyCard('등록된 지출 내역이 없습니다.')
                 else
                   ...expenses.map(
                     (item) => Padding(
@@ -200,6 +181,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                 const SizedBox(height: 10),
                 AppPrimaryButton(
                   text: '지출 추가',
+                  icon: Icons.add_rounded,
                   onPressed: moveToAddExpenseScreen,
                 ),
               ],
@@ -213,15 +195,15 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
   Widget _buildExpenseCard(Expense item) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(17),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(26),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: const Color(0xFF1E3A5F).withOpacity(0.07),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
           ),
         ],
         border: Border.all(color: AppColors.border),
@@ -231,16 +213,20 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
           Row(
             children: [
               Container(
-                width: 58,
-                height: 58,
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
-                  color: AppColors.lightBlue2,
-                  borderRadius: BorderRadius.circular(16),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFEAF4FF), Color(0xFFDCEBFF)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Icon(
                   Icons.payments_rounded,
-                  color: AppColors.primary,
-                  size: 28,
+                  color: AppColors.primaryDark,
+                  size: 27,
                 ),
               ),
               const SizedBox(width: 14),
@@ -250,78 +236,130 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                   children: [
                     Text(
                       item.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        height: 1.25,
+                        fontWeight: FontWeight.w900,
                         color: AppColors.title,
+                        letterSpacing: -0.4,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       '${item.category} · ${item.payer} 결제',
                       style: const TextStyle(
                         fontSize: 13,
+                        fontWeight: FontWeight.w600,
                         color: AppColors.subtitle,
+                        letterSpacing: -0.2,
                       ),
                     ),
                   ],
                 ),
               ),
-              Text(
-                '${_formatAmount(item.amount)}원',
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primaryDark,
+              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 11,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  '${_formatAmount(item.amount)}원',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.primaryDark,
+                    letterSpacing: -0.2,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Row(
             children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {
-                    moveToEditExpenseScreen(item);
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    side: const BorderSide(color: Color(0xFFBFDBFE)),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  child: const Text(
-                    '수정',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ),
+              _buildTextActionButton(
+                text: '수정',
+                icon: Icons.edit_rounded,
+                color: AppColors.primaryDark,
+                onPressed: () {
+                  moveToEditExpenseScreen(item);
+                },
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {
-                    deleteExpense(item);
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Color(0xFFFECACA)),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  child: const Text(
-                    '삭제',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ),
+              const SizedBox(width: 14),
+              _buildTextActionButton(
+                text: '삭제',
+                icon: Icons.delete_outline_rounded,
+                color: AppColors.danger,
+                onPressed: () {
+                  deleteExpense(item);
+                },
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTextActionButton({
+    required String text,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 14),
+      label: Text(text),
+      style: TextButton.styleFrom(
+        foregroundColor: color,
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        textStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 19,
+        fontWeight: FontWeight.w900,
+        color: AppColors.title,
+        letterSpacing: -0.5,
+      ),
+    );
+  }
+
+  Widget _buildEmptyCard(String text) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 14,
+          color: AppColors.subtitle,
+          letterSpacing: -0.2,
+        ),
       ),
     );
   }

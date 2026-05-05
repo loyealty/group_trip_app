@@ -143,11 +143,11 @@ class _TravelScreenState extends State<TravelScreen> {
             final destinations = snapshot.data ?? [];
 
             return ListView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
               children: [
                 const AppSectionHeader(
                   title: '여행지 후보',
-                  subtitle: '함께 갈 여행지를 비교하고 선택해보세요',
+                  subtitle: '함께 갈 장소를 등록하고 투표로 선택해보세요',
                 ),
                 const SizedBox(height: 24),
                 AppSummaryCard(
@@ -157,29 +157,10 @@ class _TravelScreenState extends State<TravelScreen> {
                   line2: '총 ${destinations.length}개의 후보지가 등록되어 있습니다',
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  '후보 목록',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.title,
-                  ),
-                ),
+                _buildListTitle('후보 목록'),
                 const SizedBox(height: 14),
                 if (destinations.isEmpty)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: const Text(
-                      '등록된 여행지 후보가 없습니다.',
-                      style: TextStyle(fontSize: 14, color: AppColors.subtitle),
-                    ),
-                  )
+                  _buildEmptyCard('등록된 여행지 후보가 없습니다.')
                 else
                   ...destinations.map(
                     (item) => Padding(
@@ -190,6 +171,7 @@ class _TravelScreenState extends State<TravelScreen> {
                 const SizedBox(height: 10),
                 AppPrimaryButton(
                   text: '여행지 후보 추가',
+                  icon: Icons.add_location_alt_rounded,
                   onPressed: moveToAddDestinationScreen,
                 ),
               ],
@@ -203,15 +185,15 @@ class _TravelScreenState extends State<TravelScreen> {
   Widget _buildDestinationCard(DestinationCandidate item) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(17),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(26),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: const Color(0xFF1E3A5F).withOpacity(0.07),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
           ),
         ],
         border: Border.all(color: AppColors.border),
@@ -222,15 +204,19 @@ class _TravelScreenState extends State<TravelScreen> {
           Row(
             children: [
               Container(
-                width: 52,
-                height: 52,
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
-                  color: AppColors.lightBlue2,
-                  borderRadius: BorderRadius.circular(16),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFEAF4FF), Color(0xFFDCEBFF)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Icon(
                   Icons.place_rounded,
-                  color: AppColors.primary,
+                  color: AppColors.primaryDark,
                   size: 28,
                 ),
               ),
@@ -243,16 +229,20 @@ class _TravelScreenState extends State<TravelScreen> {
                       item.name,
                       style: const TextStyle(
                         fontSize: 17,
-                        fontWeight: FontWeight.bold,
+                        height: 1.25,
+                        fontWeight: FontWeight.w900,
                         color: AppColors.title,
+                        letterSpacing: -0.4,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 5),
                     Text(
                       item.region,
                       style: const TextStyle(
                         fontSize: 13,
+                        fontWeight: FontWeight.w600,
                         color: AppColors.subtitle,
+                        letterSpacing: -0.2,
                       ),
                     ),
                   ],
@@ -261,74 +251,75 @@ class _TravelScreenState extends State<TravelScreen> {
               _buildVoteChip(item.votes),
             ],
           ),
-          const SizedBox(height: 14),
-          Text(
-            item.description,
-            style: const TextStyle(fontSize: 14, color: AppColors.subtitle),
-          ),
-          const SizedBox(height: 16),
+          if (item.description.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Text(
+              item.description,
+              style: const TextStyle(
+                fontSize: 13,
+                height: 1.45,
+                color: AppColors.subtitle,
+                letterSpacing: -0.2,
+              ),
+            ),
+          ],
+          const SizedBox(height: 10),
           Row(
             children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {
-                    moveToEditDestinationScreen(item);
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    side: const BorderSide(color: Color(0xFFBFDBFE)),
-                    padding: const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  child: const Text(
-                    '수정',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ),
+              _buildTextActionButton(
+                text: '수정',
+                icon: Icons.edit_rounded,
+                color: AppColors.primaryDark,
+                onPressed: () {
+                  moveToEditDestinationScreen(item);
+                },
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {
-                    deleteDestination(item);
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Color(0xFFFECACA)),
-                    padding: const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  child: const Text(
-                    '삭제',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ),
+              const SizedBox(width: 14),
+              _buildTextActionButton(
+                text: '삭제',
+                icon: Icons.delete_outline_rounded,
+                color: AppColors.danger,
+                onPressed: () {
+                  deleteDestination(item);
+                },
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                voteDestination(item);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 13),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
+            height: 46,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: AppColors.mainGradient,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.22),
+                    blurRadius: 14,
+                    offset: const Offset(0, 7),
+                  ),
+                ],
               ),
-              child: const Text(
-                '투표하기',
-                style: TextStyle(fontWeight: FontWeight.w600),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  voteDestination(item);
+                },
+                icon: const Icon(Icons.thumb_up_alt_rounded, size: 18),
+                label: const Text('투표하기'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  textStyle: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
+                  ),
+                ),
               ),
             ),
           ),
@@ -337,9 +328,33 @@ class _TravelScreenState extends State<TravelScreen> {
     );
   }
 
+  Widget _buildTextActionButton({
+    required String text,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 14),
+      label: Text(text),
+      style: TextButton.styleFrom(
+        foregroundColor: color,
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        textStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.2,
+        ),
+      ),
+    );
+  }
+
   Widget _buildVoteChip(int votes) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
       decoration: BoxDecoration(
         color: AppColors.chipBackground,
         borderRadius: BorderRadius.circular(999),
@@ -348,8 +363,41 @@ class _TravelScreenState extends State<TravelScreen> {
         '$votes표',
         style: const TextStyle(
           fontSize: 12,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w900,
           color: AppColors.chipText,
+          letterSpacing: -0.2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 19,
+        fontWeight: FontWeight.w900,
+        color: AppColors.title,
+        letterSpacing: -0.5,
+      ),
+    );
+  }
+
+  Widget _buildEmptyCard(String text) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 14,
+          color: AppColors.subtitle,
+          letterSpacing: -0.2,
         ),
       ),
     );
