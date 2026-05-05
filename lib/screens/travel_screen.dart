@@ -42,6 +42,68 @@ class _TravelScreenState extends State<TravelScreen> {
     }
   }
 
+  Future<void> moveToEditDestinationScreen(DestinationCandidate item) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddDestinationScreen(
+          tripRoomId: item.tripRoomId,
+          destinationCandidate: item,
+        ),
+      ),
+    );
+
+    if (result == true) {
+      refreshDestinations();
+    }
+  }
+
+  Future<void> deleteDestination(DestinationCandidate item) async {
+    final bool? result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('여행지 후보 삭제'),
+        content: Text('${item.name} 후보를 삭제하시겠습니까?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, false);
+            },
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
+            child: const Text('삭제', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (result != true) {
+      return;
+    }
+
+    try {
+      await ApiService.deleteDestinationCandidate(item.id);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('여행지 후보가 삭제되었습니다.')));
+
+      refreshDestinations();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('여행지 후보 삭제 실패: $e')));
+    }
+  }
+
   Future<void> voteDestination(DestinationCandidate item) async {
     try {
       await ApiService.voteDestinationCandidate(item.id);
@@ -209,7 +271,9 @@ class _TravelScreenState extends State<TravelScreen> {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    moveToEditDestinationScreen(item);
+                  },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primary,
                     side: const BorderSide(color: Color(0xFFBFDBFE)),
@@ -219,33 +283,54 @@ class _TravelScreenState extends State<TravelScreen> {
                     ),
                   ),
                   child: const Text(
-                    '상세 보기',
+                    '수정',
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: ElevatedButton(
+                child: OutlinedButton(
                   onPressed: () {
-                    voteDestination(item);
+                    deleteDestination(item);
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Color(0xFFFECACA)),
                     padding: const EdgeInsets.symmetric(vertical: 13),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
                   child: const Text(
-                    '투표하기',
+                    '삭제',
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                voteDestination(item);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: const Text(
+                '투표하기',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
           ),
         ],
       ),

@@ -109,6 +109,28 @@ class ApiService {
     }
   }
 
+  static Future<void> createDestinationCandidate({
+    required int tripRoomId,
+    required String name,
+    required String region,
+    required String description,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/destination-candidates'),
+      headers: headers,
+      body: jsonEncode({
+        'tripRoomId': tripRoomId,
+        'name': name,
+        'region': region,
+        'description': description,
+      }),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('여행지 후보 추가에 실패했습니다.');
+    }
+  }
+
   static Future<void> voteDestinationCandidate(int id) async {
     final response = await http.put(
       Uri.parse('$baseUrl/api/destination-candidates/$id/vote'),

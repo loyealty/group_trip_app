@@ -1,14 +1,17 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-
+import '../models/destination_candidate.dart';
+import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 
 class AddDestinationScreen extends StatefulWidget {
-  const AddDestinationScreen({super.key, required this.tripRoomId});
+  const AddDestinationScreen({
+    super.key,
+    required this.tripRoomId,
+    this.destinationCandidate,
+  });
 
   final int tripRoomId;
+  final DestinationCandidate? destinationCandidate;
 
   @override
   State<AddDestinationScreen> createState() => _AddDestinationScreenState();
@@ -21,7 +24,20 @@ class _AddDestinationScreenState extends State<AddDestinationScreen> {
 
   bool isLoading = false;
 
-  Future<void> addDestination() async {
+  bool get isEditMode => widget.destinationCandidate != null;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (isEditMode) {
+      nameController.text = widget.destinationCandidate!.name;
+      regionController.text = widget.destinationCandidate!.region;
+      descriptionController.text = widget.destinationCandidate!.description;
+    }
+  }
+
+  Future<void> saveDestination() async {
     if (nameController.text.trim().isEmpty ||
         regionController.text.trim().isEmpty ||
         descriptionController.text.trim().isEmpty) {
@@ -35,37 +51,37 @@ class _AddDestinationScreenState extends State<AddDestinationScreen> {
       isLoading = true;
     });
 
-    final url = Uri.parse('http://10.0.2.2:8080/api/destination-candidates');
-
-    final body = {
-      'tripRoomId': widget.tripRoomId,
-      'name': nameController.text.trim(),
-      'region': regionController.text.trim(),
-      'description': descriptionController.text.trim(),
-    };
-
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      );
+      if (isEditMode) {
+        await ApiService.updateDestinationCandidate(
+          id: widget.destinationCandidate!.id,
+          tripRoomId: widget.tripRoomId,
+          name: nameController.text.trim(),
+          region: regionController.text.trim(),
+          description: descriptionController.text.trim(),
+        );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('여행지 후보가 수정되었습니다.')));
+      } else {
+        await ApiService.createDestinationCandidate(
+          tripRoomId: widget.tripRoomId,
+          name: nameController.text.trim(),
+          region: regionController.text.trim(),
+          description: descriptionController.text.trim(),
+        );
+
         if (!mounted) return;
 
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('여행지 후보가 추가되었습니다.')));
-
-        Navigator.pop(context, true);
-      } else {
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('여행지 후보 추가 실패: ${response.statusCode}')),
-        );
       }
+
+      Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
 
@@ -133,7 +149,7 @@ class _AddDestinationScreenState extends State<AddDestinationScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('여행지 후보 추가'),
+        title: Text(isEditMode ? '여행지 후보 수정' : '여행지 후보 추가'),
         backgroundColor: Colors.white,
         foregroundColor: AppColors.title,
         elevation: 0,
@@ -165,7 +181,7 @@ class _AddDestinationScreenState extends State<AddDestinationScreen> {
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
-                onPressed: isLoading ? null : addDestination,
+                onPressed: isLoading ? null : saveDestination,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -176,9 +192,9 @@ class _AddDestinationScreenState extends State<AddDestinationScreen> {
                 ),
                 child: isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        '여행지 후보 저장',
-                        style: TextStyle(
+                    : Text(
+                        isEditMode ? '여행지 후보 수정' : '여행지 후보 저장',
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
