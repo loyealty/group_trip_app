@@ -43,6 +43,66 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
     }
   }
 
+  Future<void> moveToEditExpenseScreen(Expense item) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            AddExpenseScreen(tripRoomId: item.tripRoomId, expense: item),
+      ),
+    );
+
+    if (result == true) {
+      refreshExpenses();
+    }
+  }
+
+  Future<void> deleteExpense(Expense item) async {
+    final bool? result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('지출 내역 삭제'),
+        content: Text('${item.title} 내역을 삭제하시겠습니까?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, false);
+            },
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
+            child: const Text('삭제', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (result != true) {
+      return;
+    }
+
+    try {
+      await ApiService.deleteExpense(item.id);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('지출 내역이 삭제되었습니다.')));
+
+      refreshExpenses();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('지출 삭제 실패: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -166,52 +226,100 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         ],
         border: Border.all(color: AppColors.border),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Container(
-            width: 58,
-            height: 58,
-            decoration: BoxDecoration(
-              color: AppColors.lightBlue2,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(
-              Icons.payments_rounded,
-              color: AppColors.primary,
-              size: 28,
-            ),
+          Row(
+            children: [
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  color: AppColors.lightBlue2,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  Icons.payments_rounded,
+                  color: AppColors.primary,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.title,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${item.category} · ${item.payer} 결제',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.subtitle,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                '${_formatAmount(item.amount)}원',
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryDark,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.title,
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    moveToEditExpenseScreen(item);
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: Color(0xFFBFDBFE)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: const Text(
+                    '수정',
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '${item.category} · ${item.payer} 결제',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.subtitle,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    deleteExpense(item);
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Color(0xFFFECACA)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: const Text(
+                    '삭제',
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
-              ],
-            ),
-          ),
-          Text(
-            '${_formatAmount(item.amount)}원',
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primaryDark,
-            ),
+              ),
+            ],
           ),
         ],
       ),

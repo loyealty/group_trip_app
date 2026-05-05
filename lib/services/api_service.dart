@@ -187,6 +187,30 @@ class ApiService {
     }
   }
 
+  static Future<void> createExpense({
+    required int tripRoomId,
+    required String category,
+    required String title,
+    required String payer,
+    required int amount,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/expenses'),
+      headers: headers,
+      body: jsonEncode({
+        'tripRoomId': tripRoomId,
+        'category': category,
+        'title': title,
+        'payer': payer,
+        'amount': amount,
+      }),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('정산 내역 추가에 실패했습니다.');
+    }
+  }
+
   static Future<void> updateExpense({
     required int id,
     required int tripRoomId,

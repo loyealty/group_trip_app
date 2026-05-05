@@ -1,14 +1,13 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-
+import '../models/expense.dart';
+import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 
 class AddExpenseScreen extends StatefulWidget {
-  const AddExpenseScreen({super.key, required this.tripRoomId});
+  const AddExpenseScreen({super.key, required this.tripRoomId, this.expense});
 
   final int tripRoomId;
+  final Expense? expense;
 
   @override
   State<AddExpenseScreen> createState() => _AddExpenseScreenState();
@@ -22,7 +21,21 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   bool isLoading = false;
 
-  Future<void> addExpense() async {
+  bool get isEditMode => widget.expense != null;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (isEditMode) {
+      categoryController.text = widget.expense!.category;
+      titleController.text = widget.expense!.title;
+      payerController.text = widget.expense!.payer;
+      amountController.text = widget.expense!.amount.toString();
+    }
+  }
+
+  Future<void> saveExpense() async {
     if (categoryController.text.trim().isEmpty ||
         titleController.text.trim().isEmpty ||
         payerController.text.trim().isEmpty ||
@@ -46,38 +59,39 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       isLoading = true;
     });
 
-    final url = Uri.parse('http://10.0.2.2:8080/api/expenses');
-
-    final body = {
-      'tripRoomId': widget.tripRoomId,
-      'category': categoryController.text.trim(),
-      'title': titleController.text.trim(),
-      'payer': payerController.text.trim(),
-      'amount': amount,
-    };
-
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      );
+      if (isEditMode) {
+        await ApiService.updateExpense(
+          id: widget.expense!.id,
+          tripRoomId: widget.tripRoomId,
+          category: categoryController.text.trim(),
+          title: titleController.text.trim(),
+          payer: payerController.text.trim(),
+          amount: amount,
+        );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('지출 내역이 수정되었습니다.')));
+      } else {
+        await ApiService.createExpense(
+          tripRoomId: widget.tripRoomId,
+          category: categoryController.text.trim(),
+          title: titleController.text.trim(),
+          payer: payerController.text.trim(),
+          amount: amount,
+        );
+
         if (!mounted) return;
 
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('지출 내역이 추가되었습니다.')));
-
-        Navigator.pop(context, true);
-      } else {
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('지출 추가 실패: ${response.statusCode}')),
-        );
       }
+
+      Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
 
@@ -146,7 +160,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('지출 추가'),
+        title: Text(isEditMode ? '지출 수정' : '지출 추가'),
         backgroundColor: Colors.white,
         foregroundColor: AppColors.title,
         elevation: 0,
@@ -184,7 +198,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
-                onPressed: isLoading ? null : addExpense,
+                onPressed: isLoading ? null : saveExpense,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -195,9 +209,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 ),
                 child: isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        '지출 저장',
-                        style: TextStyle(
+                    : Text(
+                        isEditMode ? '지출 수정' : '지출 저장',
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
