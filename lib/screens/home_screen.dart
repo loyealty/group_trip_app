@@ -3,11 +3,42 @@ import '../models/trip_room.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_primary_button.dart';
+import 'trip_room_create_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final VoidCallback onScheduleButtonPressed;
 
   const HomeScreen({super.key, required this.onScheduleButtonPressed});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late Future<List<TripRoom>> tripRoomsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    tripRoomsFuture = ApiService.getTripRooms();
+  }
+
+  void refreshTripRooms() {
+    setState(() {
+      tripRoomsFuture = ApiService.getTripRooms();
+    });
+  }
+
+  Future<void> moveToCreateTripRoom() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const TripRoomCreateScreen()),
+    );
+
+    if (result == true) {
+      refreshTripRooms();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +46,7 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: FutureBuilder<List<TripRoom>>(
-          future: ApiService.getTripRooms(),
+          future: tripRoomsFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -33,6 +64,8 @@ class HomeScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHeroHeader(),
+                  const SizedBox(height: 20),
+                  _buildCreateTripButton(),
                   const SizedBox(height: 20),
                   _buildSectionTitle('나의 여행방', '진행 중인 그룹 여행을 확인해보세요'),
                   const SizedBox(height: 12),
@@ -160,6 +193,73 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildCreateTripButton() {
+    return InkWell(
+      onTap: moveToCreateTripRoom,
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(17),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF1E3A5F).withOpacity(0.06),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.primarySoft,
+                borderRadius: BorderRadius.circular(17),
+              ),
+              child: const Icon(
+                Icons.add_rounded,
+                color: AppColors.primaryDark,
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 14),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '새 여행방 만들기',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.title,
+                      letterSpacing: -0.4,
+                    ),
+                  ),
+                  SizedBox(height: 5),
+                  Text(
+                    '여행 제목, 기간, 여행지를 입력해보세요.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.subtitle,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.subtitle),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildTripCard(TripRoom trip) {
     return Container(
       width: double.infinity,
@@ -248,7 +348,7 @@ class HomeScreen extends StatelessWidget {
           AppPrimaryButton(
             text: '일정 조율하기',
             icon: Icons.arrow_forward_rounded,
-            onPressed: onScheduleButtonPressed,
+            onPressed: widget.onScheduleButtonPressed,
           ),
         ],
       ),

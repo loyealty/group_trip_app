@@ -21,6 +21,32 @@ class ApiService {
     }
   }
 
+  static Future<void> createTripRoom({
+    required String title,
+    required String description,
+    required String destination,
+    required String startDate,
+    required String endDate,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/trip-rooms'),
+      headers: headers,
+      body: jsonEncode({
+        'title': title,
+        'description': description,
+        'ownerId': 1,
+        'startDate': startDate,
+        'endDate': endDate,
+        'destination': destination,
+        'status': 'PLANNING',
+      }),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('여행방 생성에 실패했습니다.');
+    }
+  }
+
   static Future<List<Schedule>> getSchedulesByTripRoomId(int tripRoomId) async {
     final response = await http.get(
       Uri.parse('$baseUrl/api/schedules/trip-room/$tripRoomId'),
