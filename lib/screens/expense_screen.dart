@@ -9,7 +9,9 @@ import '../widgets/app_summary_card.dart';
 import 'add_expense_screen.dart';
 
 class ExpenseScreen extends StatefulWidget {
-  const ExpenseScreen({super.key});
+  final int tripRoomId;
+
+  const ExpenseScreen({super.key, required this.tripRoomId});
 
   @override
   State<ExpenseScreen> createState() => _ExpenseScreenState();
@@ -21,12 +23,21 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
   @override
   void initState() {
     super.initState();
-    expenseFuture = ApiService.getExpensesByTripRoomId(1);
+    expenseFuture = ApiService.getExpensesByTripRoomId(widget.tripRoomId);
+  }
+
+  @override
+  void didUpdateWidget(covariant ExpenseScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.tripRoomId != widget.tripRoomId) {
+      refreshExpenses();
+    }
   }
 
   void refreshExpenses() {
     setState(() {
-      expenseFuture = ApiService.getExpensesByTripRoomId(1);
+      expenseFuture = ApiService.getExpensesByTripRoomId(widget.tripRoomId);
     });
   }
 
@@ -34,7 +45,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const AddExpenseScreen(tripRoomId: 1),
+        builder: (context) => AddExpenseScreen(tripRoomId: widget.tripRoomId),
       ),
     );
 
@@ -137,12 +148,12 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
               children: [
                 const AppSectionHeader(
                   title: '비용 정산',
-                  subtitle: '여행 비용과 정산 내역을 한눈에 확인해보세요',
+                  subtitle: '선택한 여행방의 비용과 정산 내역을 확인해보세요',
                 ),
                 const SizedBox(height: 24),
                 AppSummaryCard(
                   icon: Icons.account_balance_wallet_rounded,
-                  title: '부산 여행 정산 요약',
+                  title: '선택한 여행 정산 요약',
                   line1: '총 지출 ${_formatAmount(totalAmount)}원',
                   line2: '1인당 ${_formatAmount(perPersonAmount)}원',
                 ),

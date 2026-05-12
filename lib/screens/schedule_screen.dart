@@ -8,7 +8,9 @@ import '../widgets/app_summary_card.dart';
 import 'add_schedule_screen.dart';
 
 class ScheduleScreen extends StatefulWidget {
-  const ScheduleScreen({super.key});
+  final int tripRoomId;
+
+  const ScheduleScreen({super.key, required this.tripRoomId});
 
   @override
   State<ScheduleScreen> createState() => _ScheduleScreenState();
@@ -20,12 +22,21 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   @override
   void initState() {
     super.initState();
-    scheduleFuture = ApiService.getSchedulesByTripRoomId(1);
+    scheduleFuture = ApiService.getSchedulesByTripRoomId(widget.tripRoomId);
+  }
+
+  @override
+  void didUpdateWidget(covariant ScheduleScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.tripRoomId != widget.tripRoomId) {
+      refreshSchedules();
+    }
   }
 
   void refreshSchedules() {
     setState(() {
-      scheduleFuture = ApiService.getSchedulesByTripRoomId(1);
+      scheduleFuture = ApiService.getSchedulesByTripRoomId(widget.tripRoomId);
     });
   }
 
@@ -33,7 +44,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const AddScheduleScreen(tripRoomId: 1),
+        builder: (context) => AddScheduleScreen(tripRoomId: widget.tripRoomId),
       ),
     );
 
@@ -125,13 +136,13 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               children: [
                 const AppSectionHeader(
                   title: '여행 일정',
-                  subtitle: '여행 일정을 확인하고 계획을 정리해보세요',
+                  subtitle: '선택한 여행방의 일정을 확인하고 계획을 정리해보세요',
                 ),
                 const SizedBox(height: 24),
                 AppSummaryCard(
                   icon: Icons.calendar_month_rounded,
-                  title: '부산 여행 일정',
-                  line1: '2026.04.10 ~ 2026.04.12',
+                  title: '선택한 여행 일정',
+                  line1: '여행방 번호 ${widget.tripRoomId}',
                   line2: '총 ${schedules.length}개의 일정이 등록되어 있습니다',
                 ),
                 const SizedBox(height: 24),

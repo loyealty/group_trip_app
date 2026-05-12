@@ -8,7 +8,9 @@ import '../widgets/app_summary_card.dart';
 import 'add_destination_screen.dart';
 
 class TravelScreen extends StatefulWidget {
-  const TravelScreen({super.key});
+  final int tripRoomId;
+
+  const TravelScreen({super.key, required this.tripRoomId});
 
   @override
   State<TravelScreen> createState() => _TravelScreenState();
@@ -20,12 +22,25 @@ class _TravelScreenState extends State<TravelScreen> {
   @override
   void initState() {
     super.initState();
-    destinationFuture = ApiService.getDestinationCandidatesByTripRoomId(1);
+    destinationFuture = ApiService.getDestinationCandidatesByTripRoomId(
+      widget.tripRoomId,
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant TravelScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.tripRoomId != widget.tripRoomId) {
+      refreshDestinations();
+    }
   }
 
   void refreshDestinations() {
     setState(() {
-      destinationFuture = ApiService.getDestinationCandidatesByTripRoomId(1);
+      destinationFuture = ApiService.getDestinationCandidatesByTripRoomId(
+        widget.tripRoomId,
+      );
     });
   }
 
@@ -33,7 +48,8 @@ class _TravelScreenState extends State<TravelScreen> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const AddDestinationScreen(tripRoomId: 1),
+        builder: (context) =>
+            AddDestinationScreen(tripRoomId: widget.tripRoomId),
       ),
     );
 
@@ -147,13 +163,13 @@ class _TravelScreenState extends State<TravelScreen> {
               children: [
                 const AppSectionHeader(
                   title: '여행지 후보',
-                  subtitle: '함께 갈 장소를 등록하고 투표로 선택해보세요',
+                  subtitle: '선택한 여행방의 후보지를 등록하고 투표로 선택해보세요',
                 ),
                 const SizedBox(height: 24),
                 AppSummaryCard(
                   icon: Icons.map_rounded,
-                  title: '부산 여행 후보지',
-                  line1: '투표를 통해 여행지를 정할 수 있어요',
+                  title: '선택한 여행 후보지',
+                  line1: '여행방 번호 ${widget.tripRoomId}',
                   line2: '총 ${destinations.length}개의 후보지가 등록되어 있습니다',
                 ),
                 const SizedBox(height: 24),

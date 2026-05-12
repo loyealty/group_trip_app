@@ -14,6 +14,7 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int currentIndex = 0;
+  int selectedTripRoomId = 1;
 
   void moveToScheduleTab() {
     setState(() {
@@ -21,16 +22,32 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     });
   }
 
-  late final List<Widget> pages = [
-    HomeScreen(onScheduleButtonPressed: moveToScheduleTab),
-    const ScheduleScreen(),
-    const TravelScreen(),
-    const ExpenseScreen(),
-    const MyScreen(),
-  ];
+  void changeTripRoom(int tripRoomId) {
+    setState(() {
+      selectedTripRoomId = tripRoomId;
+    });
+  }
+
+  void moveToTab(int index) {
+    setState(() {
+      currentIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> pages = [
+      HomeScreen(
+        selectedTripRoomId: selectedTripRoomId,
+        onTripRoomSelected: changeTripRoom,
+        onScheduleButtonPressed: moveToScheduleTab,
+      ),
+      ScheduleScreen(tripRoomId: selectedTripRoomId),
+      TravelScreen(tripRoomId: selectedTripRoomId),
+      ExpenseScreen(tripRoomId: selectedTripRoomId),
+      const MyScreen(),
+    ];
+
     return Scaffold(
       body: pages[currentIndex],
       bottomNavigationBar: NavigationBar(
@@ -39,11 +56,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         backgroundColor: Colors.white,
         indicatorColor: const Color(0xFFDCEEFF),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        onDestinationSelected: (index) {
-          setState(() {
-            currentIndex = index;
-          });
-        },
+        onDestinationSelected: moveToTab,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_rounded),
