@@ -45,7 +45,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ScheduleScreen(tripRoomId: selectedTripRoomId),
       TravelScreen(tripRoomId: selectedTripRoomId),
       ExpenseScreen(tripRoomId: selectedTripRoomId),
-      const MyScreen(),
+      MyScreen(tripRoomId: selectedTripRoomId),
     ];
 
     return Scaffold(

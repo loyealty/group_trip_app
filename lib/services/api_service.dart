@@ -4,6 +4,7 @@ import '../models/trip_room.dart';
 import '../models/schedule.dart';
 import '../models/destination_candidate.dart';
 import '../models/expense.dart';
+import '../models/trip_member.dart';
 
 class ApiService {
   static const String baseUrl = 'http://10.0.2.2:8080';
@@ -44,6 +45,41 @@ class ApiService {
 
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception('여행방 생성에 실패했습니다.');
+    }
+  }
+
+  static Future<List<TripMember>> getTripMembersByTripRoomId(
+    int tripRoomId,
+  ) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/trip-members/trip-room/$tripRoomId'),
+    );
+
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body);
+      return data.map((e) => TripMember.fromJson(e)).toList();
+    } else {
+      throw Exception('멤버 데이터를 불러오지 못했습니다.');
+    }
+  }
+
+  static Future<void> createTripMember({
+    required int tripRoomId,
+    required String memberName,
+    String role = 'MEMBER',
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/trip-members'),
+      headers: headers,
+      body: jsonEncode({
+        'tripRoomId': tripRoomId,
+        'memberName': memberName,
+        'role': role,
+      }),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('멤버 추가에 실패했습니다.');
     }
   }
 
