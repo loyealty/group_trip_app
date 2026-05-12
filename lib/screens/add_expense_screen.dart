@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/expense.dart';
+import '../models/trip_member.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_primary_button.dart';
@@ -17,9 +18,11 @@ class AddExpenseScreen extends StatefulWidget {
 class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final TextEditingController categoryController = TextEditingController();
   final TextEditingController titleController = TextEditingController();
-  final TextEditingController payerController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
 
+  late Future<List<TripMember>> memberFuture;
+
+  String? selectedPayer;
   bool isLoading = false;
 
   bool get isEditMode => widget.expense != null;
@@ -28,10 +31,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   void initState() {
     super.initState();
 
+    memberFuture = ApiService.getTripMembersByTripRoomId(widget.tripRoomId);
+
     if (isEditMode) {
       categoryController.text = widget.expense!.category;
       titleController.text = widget.expense!.title;
-      payerController.text = widget.expense!.payer;
+      selectedPayer = widget.expense!.payer;
       amountController.text = widget.expense!.amount.toString();
     }
   }
@@ -39,7 +44,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   Future<void> saveExpense() async {
     if (categoryController.text.trim().isEmpty ||
         titleController.text.trim().isEmpty ||
-        payerController.text.trim().isEmpty ||
+        selectedPayer == null ||
+        selectedPayer!.trim().isEmpty ||
         amountController.text.trim().isEmpty) {
       ScaffoldMessenger.of(
         context,
@@ -67,7 +73,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           tripRoomId: widget.tripRoomId,
           category: categoryController.text.trim(),
           title: titleController.text.trim(),
-          payer: payerController.text.trim(),
+          payer: selectedPayer!,
           amount: amount,
         );
 
@@ -81,7 +87,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           tripRoomId: widget.tripRoomId,
           category: categoryController.text.trim(),
           title: titleController.text.trim(),
-          payer: payerController.text.trim(),
+          payer: selectedPayer!,
           amount: amount,
         );
 
@@ -112,7 +118,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   void dispose() {
     categoryController.dispose();
     titleController.dispose();
-    payerController.dispose();
     amountController.dispose();
     super.dispose();
   }
@@ -179,6 +184,194 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget payerDropdown() {
+    return FutureBuilder<List<TripMember>>(
+      future: memberFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '결제자',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.title,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              const SizedBox(height: 9),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+            ],
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '결제자',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.title,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              const SizedBox(height: 9),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: const Text(
+                  '멤버 정보를 불러오지 못했습니다.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.subtitle,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+
+        final members = snapshot.data ?? [];
+        final memberNames = members.map((member) => member.memberName).toList();
+
+        if (selectedPayer != null &&
+            selectedPayer!.isNotEmpty &&
+            !memberNames.contains(selectedPayer)) {
+          memberNames.add(selectedPayer!);
+        }
+
+        if (memberNames.isEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '결제자',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.title,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              const SizedBox(height: 9),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: const Text(
+                  '등록된 멤버가 없습니다. 마이 페이지에서 멤버를 먼저 추가해주세요.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.4,
+                    color: AppColors.subtitle,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '결제자',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: AppColors.title,
+                letterSpacing: -0.2,
+              ),
+            ),
+            const SizedBox(height: 9),
+            DropdownButtonFormField<String>(
+              value: selectedPayer,
+              items: memberNames
+                  .map(
+                    (name) => DropdownMenuItem<String>(
+                      value: name,
+                      child: Text(name),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedPayer = value;
+                });
+              },
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.title,
+                letterSpacing: -0.2,
+              ),
+              decoration: InputDecoration(
+                hintText: '결제자를 선택해주세요',
+                hintStyle: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.subtitle,
+                  fontWeight: FontWeight.w500,
+                ),
+                prefixIcon: const Icon(
+                  Icons.person_rounded,
+                  color: AppColors.primaryDark,
+                  size: 21,
+                ),
+                prefixIconConstraints: const BoxConstraints(
+                  minWidth: 46,
+                  minHeight: 46,
+                ),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(18),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(18),
+                  borderSide: const BorderSide(color: AppColors.border),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(18),
+                  borderSide: const BorderSide(color: AppColors.primaryDark),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -279,12 +472,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             icon: Icons.receipt_long_rounded,
           ),
           const SizedBox(height: 16),
-          inputField(
-            controller: payerController,
-            label: '결제자',
-            hintText: '예: 김지윤',
-            icon: Icons.person_rounded,
-          ),
+          payerDropdown(),
           const SizedBox(height: 16),
           inputField(
             controller: amountController,

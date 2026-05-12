@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/expense.dart';
+import '../models/trip_member.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_primary_button.dart';
@@ -19,11 +20,13 @@ class ExpenseScreen extends StatefulWidget {
 
 class _ExpenseScreenState extends State<ExpenseScreen> {
   late Future<List<Expense>> expenseFuture;
+  late Future<List<TripMember>> memberFuture;
 
   @override
   void initState() {
     super.initState();
     expenseFuture = ApiService.getExpensesByTripRoomId(widget.tripRoomId);
+    memberFuture = ApiService.getTripMembersByTripRoomId(widget.tripRoomId);
   }
 
   @override
@@ -31,8 +34,15 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
     super.didUpdateWidget(oldWidget);
 
     if (oldWidget.tripRoomId != widget.tripRoomId) {
-      refreshExpenses();
+      refreshData();
     }
+  }
+
+  void refreshData() {
+    setState(() {
+      expenseFuture = ApiService.getExpensesByTripRoomId(widget.tripRoomId);
+      memberFuture = ApiService.getTripMembersByTripRoomId(widget.tripRoomId);
+    });
   }
 
   void refreshExpenses() {
@@ -121,81 +131,96 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
       body: SafeArea(
         child: FutureBuilder<List<Expense>>(
           future: expenseFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+          builder: (context, expenseSnapshot) {
+            if (expenseSnapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            if (snapshot.hasError) {
-              return Center(child: Text('에러: ${snapshot.error}'));
+            if (expenseSnapshot.hasError) {
+              return Center(child: Text('에러: ${expenseSnapshot.error}'));
             }
 
-            final expenses = snapshot.data ?? [];
+            final expenses = expenseSnapshot.data ?? [];
 
-            final int totalAmount = expenses.fold(
-              0,
-              (sum, item) => sum + item.amount,
-            );
+            return FutureBuilder<List<TripMember>>(
+              future: memberFuture,
+              builder: (context, memberSnapshot) {
+                if (memberSnapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-            const int memberCount = 4;
+                final members = memberSnapshot.data ?? [];
 
-            final int perPersonAmount = expenses.isEmpty
-                ? 0
-                : totalAmount ~/ memberCount;
+                final int totalAmount = expenses.fold(
+                  0,
+                  (sum, item) => sum + item.amount,
+                );
 
-            return ListView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
-              children: [
-                const AppSectionHeader(
-                  title: '비용 정산',
-                  subtitle: '선택한 여행방의 비용과 정산 내역을 확인해보세요',
-                ),
-                const SizedBox(height: 24),
-                AppSummaryCard(
-                  icon: Icons.account_balance_wallet_rounded,
-                  title: '선택한 여행 정산 요약',
-                  line1: '총 지출 ${_formatAmount(totalAmount)}원',
-                  line2: '1인당 ${_formatAmount(perPersonAmount)}원',
-                ),
-                const SizedBox(height: 16),
-                Row(
+                final int memberCount = members.length;
+
+                final int perPersonAmount = expenses.isEmpty || memberCount == 0
+                    ? 0
+                    : totalAmount ~/ memberCount;
+
+                return ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
                   children: [
-                    Expanded(
-                      child: AppStatCard(
-                        icon: Icons.group_rounded,
-                        title: '참여 인원',
-                        value: '${memberCount}명',
-                      ),
+                    const AppSectionHeader(
+                      title: '비용 정산',
+                      subtitle: '선택한 여행방의 비용과 정산 내역을 확인해보세요',
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: AppStatCard(
-                        icon: Icons.receipt_long_rounded,
-                        title: '지출 건수',
-                        value: '${expenses.length}건',
+                    const SizedBox(height: 24),
+                    AppSummaryCard(
+                      icon: Icons.account_balance_wallet_rounded,
+                      title: '선택한 여행 정산 요약',
+                      line1: '총 지출 ${_formatAmount(totalAmount)}원',
+                      line2: '1인당 ${_formatAmount(perPersonAmount)}원',
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AppStatCard(
+                            icon: Icons.group_rounded,
+                            title: '참여 인원',
+                            value: '${memberCount}명',
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: AppStatCard(
+                            icon: Icons.receipt_long_rounded,
+                            title: '지출 건수',
+                            value: '${expenses.length}건',
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (memberSnapshot.hasError) ...[
+                      const SizedBox(height: 14),
+                      _buildEmptyCard('멤버 정보를 불러오지 못해 참여 인원이 0명으로 표시됩니다.'),
+                    ],
+                    const SizedBox(height: 24),
+                    _buildListTitle('지출 내역'),
+                    const SizedBox(height: 14),
+                    if (expenses.isEmpty)
+                      _buildEmptyCard('등록된 지출 내역이 없습니다.')
+                    else
+                      ...expenses.map(
+                        (item) => Padding(
+                          padding: const EdgeInsets.only(bottom: 14),
+                          child: _buildExpenseCard(item),
+                        ),
                       ),
+                    const SizedBox(height: 10),
+                    AppPrimaryButton(
+                      text: '지출 추가',
+                      icon: Icons.add_rounded,
+                      onPressed: moveToAddExpenseScreen,
                     ),
                   ],
-                ),
-                const SizedBox(height: 24),
-                _buildListTitle('지출 내역'),
-                const SizedBox(height: 14),
-                if (expenses.isEmpty)
-                  _buildEmptyCard('등록된 지출 내역이 없습니다.')
-                else
-                  ...expenses.map(
-                    (item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 14),
-                      child: _buildExpenseCard(item),
-                    ),
-                  ),
-                const SizedBox(height: 10),
-                AppPrimaryButton(
-                  text: '지출 추가',
-                  icon: Icons.add_rounded,
-                  onPressed: moveToAddExpenseScreen,
-                ),
-              ],
+                );
+              },
             );
           },
         ),
