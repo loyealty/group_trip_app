@@ -124,6 +124,101 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
     }
   }
 
+  List<SettlementResult> calculateSettlementResults({
+    required List<Expense> expenses,
+    required List<TripMember> members,
+  }) {
+    if (expenses.isEmpty || members.isEmpty) {
+      return [];
+    }
+
+    final List<String> memberNames = members
+        .map((member) => member.memberName.trim())
+        .where((name) => name.isNotEmpty)
+        .toList();
+
+    if (memberNames.isEmpty) {
+      return [];
+    }
+
+    final Map<String, int> balanceMap = {
+      for (final name in memberNames) name: 0,
+    };
+
+    for (final expense in expenses) {
+      final String payer = expense.payer.trim();
+
+      if (payer.isEmpty || !balanceMap.containsKey(payer)) {
+        continue;
+      }
+
+      final int memberCount = memberNames.length;
+      final int shareAmount = expense.amount ~/ memberCount;
+      final int remainder = expense.amount % memberCount;
+
+      balanceMap[payer] = balanceMap[payer]! + expense.amount;
+
+      for (int i = 0; i < memberNames.length; i++) {
+        final String memberName = memberNames[i];
+        final int extra = i < remainder ? 1 : 0;
+        balanceMap[memberName] = balanceMap[memberName]! - shareAmount - extra;
+      }
+    }
+
+    final List<MapEntry<String, int>> receivers = balanceMap.entries
+        .where((entry) => entry.value > 0)
+        .toList();
+
+    final List<MapEntry<String, int>> payers = balanceMap.entries
+        .where((entry) => entry.value < 0)
+        .map((entry) => MapEntry(entry.key, -entry.value))
+        .toList();
+
+    final List<SettlementResult> results = [];
+
+    int payerIndex = 0;
+    int receiverIndex = 0;
+
+    while (payerIndex < payers.length && receiverIndex < receivers.length) {
+      final currentPayer = payers[payerIndex];
+      final currentReceiver = receivers[receiverIndex];
+
+      final int amount = currentPayer.value < currentReceiver.value
+          ? currentPayer.value
+          : currentReceiver.value;
+
+      if (amount > 0) {
+        results.add(
+          SettlementResult(
+            fromMember: currentPayer.key,
+            toMember: currentReceiver.key,
+            amount: amount,
+          ),
+        );
+      }
+
+      final int remainPayerAmount = currentPayer.value - amount;
+      final int remainReceiverAmount = currentReceiver.value - amount;
+
+      if (remainPayerAmount == 0) {
+        payerIndex++;
+      } else {
+        payers[payerIndex] = MapEntry(currentPayer.key, remainPayerAmount);
+      }
+
+      if (remainReceiverAmount == 0) {
+        receiverIndex++;
+      } else {
+        receivers[receiverIndex] = MapEntry(
+          currentReceiver.key,
+          remainReceiverAmount,
+        );
+      }
+    }
+
+    return results;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -161,6 +256,11 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                 final int perPersonAmount = expenses.isEmpty || memberCount == 0
                     ? 0
                     : totalAmount ~/ memberCount;
+
+                final settlementResults = calculateSettlementResults(
+                  expenses: expenses,
+                  members: members,
+                );
 
                 return ListView(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
@@ -201,6 +301,10 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                       _buildEmptyCard('멤버 정보를 불러오지 못해 참여 인원이 0명으로 표시됩니다.'),
                     ],
                     const SizedBox(height: 24),
+                    _buildListTitle('최종 정산 결과'),
+                    const SizedBox(height: 14),
+                    _buildSettlementSection(settlementResults),
+                    const SizedBox(height: 24),
                     _buildListTitle('지출 내역'),
                     const SizedBox(height: 14),
                     if (expenses.isEmpty)
@@ -224,6 +328,96 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
             );
           },
         ),
+      ),
+    );
+  }
+
+  Widget _buildSettlementSection(List<SettlementResult> results) {
+    if (results.isEmpty) {
+      return _buildEmptyCard('정산할 내역이 없습니다.');
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(17),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1E3A5F).withOpacity(0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 9),
+          ),
+        ],
+      ),
+      child: Column(
+        children: results
+            .map(
+              (result) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _buildSettlementItem(result),
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+
+  Widget _buildSettlementItem(SettlementResult result) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      decoration: BoxDecoration(
+        color: AppColors.cardSoft,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: AppColors.lightBlue,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.swap_horiz_rounded,
+              color: AppColors.primaryDark,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              '${result.fromMember} → ${result.toMember}',
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+                color: AppColors.title,
+                letterSpacing: -0.3,
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+            decoration: BoxDecoration(
+              color: AppColors.primarySoft,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              '${_formatAmount(result.amount)}원',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                color: AppColors.primaryDark,
+                letterSpacing: -0.2,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -415,4 +609,16 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
 
     return buffer.toString();
   }
+}
+
+class SettlementResult {
+  final String fromMember;
+  final String toMember;
+  final int amount;
+
+  SettlementResult({
+    required this.fromMember,
+    required this.toMember,
+    required this.amount,
+  });
 }
