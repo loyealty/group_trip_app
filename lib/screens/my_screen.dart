@@ -104,6 +104,121 @@ class _MyScreenState extends State<MyScreen> {
     }
   }
 
+  Future<void> showEditMemberDialog(TripMember member) async {
+    String memberName = member.memberName;
+
+    final String? result = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('멤버 수정'),
+          content: TextField(
+            autofocus: true,
+            controller: TextEditingController(text: member.memberName),
+            decoration: const InputDecoration(
+              labelText: '멤버 이름',
+              hintText: '예: 지윤',
+            ),
+            onChanged: (value) {
+              memberName = value.trim();
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (memberName.isNotEmpty) {
+                  Navigator.pop(dialogContext, memberName);
+                }
+              },
+              child: const Text('수정'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == null || result.trim().isEmpty) {
+      return;
+    }
+
+    try {
+      await ApiService.updateTripMember(
+        id: member.id,
+        tripRoomId: member.tripRoomId,
+        memberName: result.trim(),
+        role: member.role,
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('멤버가 수정되었습니다.')));
+
+      refreshMembers();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('멤버 수정 실패: $e')));
+    }
+  }
+
+  Future<void> deleteMember(TripMember member) async {
+    final bool? result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('멤버 삭제'),
+          content: Text('${member.memberName} 멤버를 삭제할까요?\n정산 인원 수가 변경됩니다.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, false);
+              },
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, true);
+              },
+              child: const Text('삭제'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != true) {
+      return;
+    }
+
+    try {
+      await ApiService.deleteTripMember(member.id);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('멤버가 삭제되었습니다.')));
+
+      refreshMembers();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('멤버 삭제 실패: $e')));
+    }
+  }
+
   String getKoreanRole(String role) {
     switch (role) {
       case 'OWNER':
@@ -117,6 +232,43 @@ class _MyScreenState extends State<MyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.tripRoomId == 0) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              const AppSectionHeader(
+                title: '마이 페이지',
+                subtitle: '여행방을 선택하면 멤버 정보를 확인할 수 있어요',
+              ),
+              const SizedBox(height: 24),
+              _buildProfileCard(),
+              const SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: const Text(
+                  '선택된 여행방이 없습니다.\n홈 화면에서 여행방을 선택해주세요.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.subtitle,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -344,46 +496,78 @@ class _MyScreenState extends State<MyScreen> {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.border),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: AppColors.lightBlue,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(
-              Icons.person_rounded,
-              color: AppColors.primaryDark,
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              member.memberName,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                color: AppColors.title,
+          Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: AppColors.lightBlue,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.person_rounded,
+                  color: AppColors.primaryDark,
+                  size: 22,
+                ),
               ),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.chipBackground,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(
-              getKoreanRole(member.role),
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: AppColors.chipText,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  member.memberName,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.title,
+                  ),
+                ),
               ),
-            ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.chipBackground,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  getKoreanRole(member.role),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.chipText,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton.icon(
+                onPressed: () {
+                  showEditMemberDialog(member);
+                },
+                icon: const Icon(Icons.edit_rounded, size: 16),
+                label: const Text('수정'),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primaryDark,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+              ),
+              TextButton.icon(
+                onPressed: () {
+                  deleteMember(member);
+                },
+                icon: const Icon(Icons.delete_outline_rounded, size: 16),
+                label: const Text('삭제'),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.redAccent,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+              ),
+            ],
           ),
         ],
       ),

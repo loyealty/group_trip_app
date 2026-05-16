@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import '../models/trip_room.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_primary_button.dart';
 
 class TripRoomCreateScreen extends StatefulWidget {
-  const TripRoomCreateScreen({super.key});
+  final TripRoom? tripRoom;
+
+  const TripRoomCreateScreen({super.key, this.tripRoom});
 
   @override
   State<TripRoomCreateScreen> createState() => _TripRoomCreateScreenState();
@@ -19,6 +22,23 @@ class _TripRoomCreateScreenState extends State<TripRoomCreateScreen> {
   DateTime? endDate;
 
   bool isLoading = false;
+
+  bool get isEditMode => widget.tripRoom != null;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (isEditMode) {
+      final trip = widget.tripRoom!;
+
+      titleController.text = trip.title;
+      destinationController.text = trip.destination;
+      descriptionController.text = trip.description;
+      startDate = DateTime.tryParse(trip.startDate);
+      endDate = DateTime.tryParse(trip.endDate);
+    }
+  }
 
   String formatDate(DateTime date) {
     return '${date.year.toString().padLeft(4, '0')}-'
@@ -60,7 +80,7 @@ class _TripRoomCreateScreenState extends State<TripRoomCreateScreen> {
     }
   }
 
-  Future<void> createTripRoom() async {
+  Future<void> saveTripRoom() async {
     if (isLoading) {
       return;
     }
@@ -80,27 +100,39 @@ class _TripRoomCreateScreenState extends State<TripRoomCreateScreen> {
     });
 
     try {
-      await ApiService.createTripRoom(
-        title: titleController.text.trim(),
-        description: descriptionController.text.trim(),
-        destination: destinationController.text.trim(),
-        startDate: formatDate(startDate!),
-        endDate: formatDate(endDate!),
-      );
+      if (isEditMode) {
+        await ApiService.updateTripRoom(
+          id: widget.tripRoom!.id,
+          title: titleController.text.trim(),
+          description: descriptionController.text.trim(),
+          destination: destinationController.text.trim(),
+          startDate: formatDate(startDate!),
+          endDate: formatDate(endDate!),
+          status: widget.tripRoom!.status,
+        );
+      } else {
+        await ApiService.createTripRoom(
+          title: titleController.text.trim(),
+          description: descriptionController.text.trim(),
+          destination: destinationController.text.trim(),
+          startDate: formatDate(startDate!),
+          endDate: formatDate(endDate!),
+        );
+      }
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('여행방이 생성되었습니다.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(isEditMode ? '여행방이 수정되었습니다.' : '여행방이 생성되었습니다.')),
+      );
 
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('여행방 생성 실패: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(isEditMode ? '여행방 수정 실패: $e' : '여행방 생성 실패: $e')),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -221,30 +253,32 @@ class _TripRoomCreateScreenState extends State<TripRoomCreateScreen> {
               color: AppColors.primarySoft,
               borderRadius: BorderRadius.circular(17),
             ),
-            child: const Icon(
-              Icons.travel_explore_rounded,
+            child: Icon(
+              isEditMode ? Icons.edit_rounded : Icons.travel_explore_rounded,
               color: AppColors.primaryDark,
               size: 25,
             ),
           ),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '새로운 여행방 생성',
-                  style: TextStyle(
+                  isEditMode ? '여행방 정보 수정' : '새로운 여행방 생성',
+                  style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w900,
                     color: AppColors.title,
                     letterSpacing: -0.4,
                   ),
                 ),
-                SizedBox(height: 5),
+                const SizedBox(height: 5),
                 Text(
-                  '여행 정보를 입력하면 홈 화면에 바로 추가됩니다.',
-                  style: TextStyle(
+                  isEditMode
+                      ? '여행방 정보를 수정하면 홈 화면에 바로 반영됩니다.'
+                      : '여행 정보를 입력하면 홈 화면에 바로 추가됩니다.',
+                  style: const TextStyle(
                     fontSize: 13,
                     height: 1.4,
                     color: AppColors.subtitle,
@@ -300,11 +334,17 @@ class _TripRoomCreateScreenState extends State<TripRoomCreateScreen> {
           ),
           const SizedBox(height: 8),
           AppPrimaryButton(
-            text: isLoading ? '생성 중...' : '여행방 생성하기',
-            icon: Icons.add_rounded,
+            text: isLoading
+                ? isEditMode
+                      ? '수정 중...'
+                      : '생성 중...'
+                : isEditMode
+                ? '여행방 수정하기'
+                : '여행방 생성하기',
+            icon: isEditMode ? Icons.edit_rounded : Icons.add_rounded,
             onPressed: () {
               if (!isLoading) {
-                createTripRoom();
+                saveTripRoom();
               }
             },
           ),
@@ -318,9 +358,12 @@ class _TripRoomCreateScreenState extends State<TripRoomCreateScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text(
-          '여행방 만들기',
-          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -0.4),
+        title: Text(
+          isEditMode ? '여행방 수정' : '여행방 만들기',
+          style: const TextStyle(
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.4,
+          ),
         ),
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.title,

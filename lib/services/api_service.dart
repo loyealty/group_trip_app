@@ -48,6 +48,44 @@ class ApiService {
     }
   }
 
+  static Future<void> updateTripRoom({
+    required int id,
+    required String title,
+    required String description,
+    required String destination,
+    required String startDate,
+    required String endDate,
+    String status = 'PLANNING',
+  }) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/trip-rooms/$id'),
+      headers: headers,
+      body: jsonEncode({
+        'title': title,
+        'description': description,
+        'ownerId': 1,
+        'startDate': startDate,
+        'endDate': endDate,
+        'destination': destination,
+        'status': status,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('여행방 수정에 실패했습니다.');
+    }
+  }
+
+  static Future<void> deleteTripRoom(int id) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/trip-rooms/$id'),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('여행방 삭제에 실패했습니다.');
+    }
+  }
+
   static Future<List<TripMember>> getTripMembersByTripRoomId(
     int tripRoomId,
   ) async {
@@ -80,6 +118,37 @@ class ApiService {
 
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception('멤버 추가에 실패했습니다.');
+    }
+  }
+
+  static Future<void> updateTripMember({
+    required int id,
+    required int tripRoomId,
+    required String memberName,
+    String role = 'MEMBER',
+  }) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/trip-members/$id'),
+      headers: headers,
+      body: jsonEncode({
+        'tripRoomId': tripRoomId,
+        'memberName': memberName,
+        'role': role,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('멤버 수정에 실패했습니다.');
+    }
+  }
+
+  static Future<void> deleteTripMember(int id) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/trip-members/$id'),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('멤버 삭제에 실패했습니다.');
     }
   }
 

@@ -47,8 +47,76 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void selectTripRoom(TripRoom trip) {
+  Future<void> moveToEditTripRoom(TripRoom trip) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TripRoomCreateScreen(tripRoom: trip),
+      ),
+    );
+
+    if (result == true) {
+      refreshTripRooms();
+    }
+  }
+
+  Future<void> deleteTripRoom(TripRoom trip) async {
+    final bool? result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('여행방 삭제'),
+          content: Text(
+            '${trip.title} 여행방을 삭제할까요?\n관련 일정, 여행지 후보, 정산 내역, 멤버 정보도 함께 삭제됩니다.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, false);
+              },
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, true);
+              },
+              child: const Text('삭제'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != true) {
+      return;
+    }
+
+    try {
+      await ApiService.deleteTripRoom(trip.id);
+
+      if (!mounted) return;
+
+      if (trip.id == widget.selectedTripRoomId) {
+        widget.onTripRoomSelected(0);
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('여행방이 삭제되었습니다.')));
+
+      refreshTripRooms();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('여행방 삭제 실패: $e')));
+    }
+  }
+
+  void openTripSchedule(TripRoom trip) {
     widget.onTripRoomSelected(trip.id);
+    widget.onScheduleButtonPressed();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -281,130 +349,147 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildTripCard(TripRoom trip) {
     final bool isSelected = trip.id == widget.selectedTripRoomId;
 
-    return InkWell(
-      onTap: () {
-        selectTripRoom(trip);
-      },
-      borderRadius: BorderRadius.circular(28),
-      child: Container(
-        width: double.infinity,
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF1E3A5F).withOpacity(0.08),
-              blurRadius: 24,
-              offset: const Offset(0, 10),
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1E3A5F).withOpacity(0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+        border: Border.all(
+          color: isSelected ? AppColors.primary : AppColors.border,
+          width: isSelected ? 1.6 : 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (isSelected) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.chipBackground,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: const Text(
+                '선택 중인 여행방',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.chipText,
+                  letterSpacing: -0.2,
+                ),
+              ),
             ),
           ],
-          border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.border,
-            width: isSelected ? 1.6 : 1,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (isSelected) ...[
+          Row(
+            children: [
               Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
-                  color: AppColors.chipBackground,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: const Text(
-                  '선택 중인 여행방',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.chipText,
-                    letterSpacing: -0.2,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFEAF4FF), Color(0xFFDCEBFF)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Icon(
+                  Icons.flight_takeoff_rounded,
+                  color: AppColors.primaryDark,
+                  size: 29,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      trip.title,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        height: 1.2,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.title,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      trip.description,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.subtitle,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _buildStatusChip(_getKoreanStatus(trip.status)),
+            ],
+          ),
+          const SizedBox(height: 18),
+          _buildDetailBox(
+            icon: Icons.place_rounded,
+            label: '여행지',
+            value: trip.destination,
+          ),
+          const SizedBox(height: 10),
+          _buildDetailBox(
+            icon: Icons.date_range_rounded,
+            label: '여행 기간',
+            value:
+                '${_formatDate(trip.startDate)} ~ ${_formatDate(trip.endDate)}',
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              TextButton.icon(
+                onPressed: () {
+                  moveToEditTripRoom(trip);
+                },
+                icon: const Icon(Icons.edit_rounded, size: 17),
+                label: const Text('수정'),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primaryDark,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+              ),
+              TextButton.icon(
+                onPressed: () {
+                  deleteTripRoom(trip);
+                },
+                icon: const Icon(Icons.delete_outline_rounded, size: 17),
+                label: const Text('삭제'),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.redAccent,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
                 ),
               ),
             ],
-            Row(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFEAF4FF), Color(0xFFDCEBFF)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Icon(
-                    Icons.flight_takeoff_rounded,
-                    color: AppColors.primaryDark,
-                    size: 29,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        trip.title,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          height: 1.2,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.title,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        trip.description,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.subtitle,
-                          letterSpacing: -0.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                _buildStatusChip(_getKoreanStatus(trip.status)),
-              ],
-            ),
-            const SizedBox(height: 18),
-            _buildDetailBox(
-              icon: Icons.place_rounded,
-              label: '여행지',
-              value: trip.destination,
-            ),
-            const SizedBox(height: 10),
-            _buildDetailBox(
-              icon: Icons.date_range_rounded,
-              label: '여행 기간',
-              value:
-                  '${_formatDate(trip.startDate)} ~ ${_formatDate(trip.endDate)}',
-            ),
-            const SizedBox(height: 18),
-            AppPrimaryButton(
-              text: isSelected ? '선택한 여행 일정 보기' : '이 여행방 선택하기',
-              icon: Icons.arrow_forward_rounded,
-              onPressed: () {
-                widget.onTripRoomSelected(trip.id);
-                widget.onScheduleButtonPressed();
-              },
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+          AppPrimaryButton(
+            text: isSelected ? '선택한 여행 일정 보기' : '이 여행방 일정 보기',
+            icon: Icons.arrow_forward_rounded,
+            onPressed: () {
+              openTripSchedule(trip);
+            },
+          ),
+        ],
       ),
     );
   }
