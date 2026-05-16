@@ -25,8 +25,24 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
   @override
   void initState() {
     super.initState();
-    expenseFuture = ApiService.getExpensesByTripRoomId(widget.tripRoomId);
-    memberFuture = ApiService.getTripMembersByTripRoomId(widget.tripRoomId);
+    expenseFuture = _loadExpenses();
+    memberFuture = _loadMembers();
+  }
+
+  Future<List<Expense>> _loadExpenses() {
+    if (widget.tripRoomId == 0) {
+      return Future.value([]);
+    }
+
+    return ApiService.getExpensesByTripRoomId(widget.tripRoomId);
+  }
+
+  Future<List<TripMember>> _loadMembers() {
+    if (widget.tripRoomId == 0) {
+      return Future.value([]);
+    }
+
+    return ApiService.getTripMembersByTripRoomId(widget.tripRoomId);
   }
 
   @override
@@ -40,18 +56,23 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
 
   void refreshData() {
     setState(() {
-      expenseFuture = ApiService.getExpensesByTripRoomId(widget.tripRoomId);
-      memberFuture = ApiService.getTripMembersByTripRoomId(widget.tripRoomId);
+      expenseFuture = _loadExpenses();
+      memberFuture = _loadMembers();
     });
   }
 
   void refreshExpenses() {
-    setState(() {
-      expenseFuture = ApiService.getExpensesByTripRoomId(widget.tripRoomId);
-    });
+    refreshData();
   }
 
   Future<void> moveToAddExpenseScreen() async {
+    if (widget.tripRoomId == 0) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('먼저 홈 화면에서 여행방을 선택해주세요.')));
+      return;
+    }
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -60,7 +81,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
     );
 
     if (result == true) {
-      refreshExpenses();
+      refreshData();
     }
   }
 
@@ -74,7 +95,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
     );
 
     if (result == true) {
-      refreshExpenses();
+      refreshData();
     }
   }
 
@@ -114,7 +135,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         context,
       ).showSnackBar(const SnackBar(content: Text('지출 내역이 삭제되었습니다.')));
 
-      refreshExpenses();
+      refreshData();
     } catch (e) {
       if (!mounted) return;
 
@@ -221,6 +242,25 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.tripRoomId == 0) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+            children: [
+              const AppSectionHeader(
+                title: '비용 정산',
+                subtitle: '여행방을 선택하면 정산 내역을 확인할 수 있어요',
+              ),
+              const SizedBox(height: 24),
+              _buildEmptyCard('선택된 여행방이 없습니다.\n홈 화면에서 여행방을 먼저 선택해주세요.'),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -589,6 +629,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
           fontSize: 14,
           color: AppColors.subtitle,
           letterSpacing: -0.2,
+          height: 1.5,
         ),
       ),
     );

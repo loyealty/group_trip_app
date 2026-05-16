@@ -14,7 +14,7 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int currentIndex = 0;
-  int selectedTripRoomId = 1;
+  int selectedTripRoomId = 0;
 
   void moveToScheduleTab() {
     setState(() {

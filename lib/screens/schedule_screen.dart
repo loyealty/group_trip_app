@@ -22,7 +22,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   @override
   void initState() {
     super.initState();
-    scheduleFuture = ApiService.getSchedulesByTripRoomId(widget.tripRoomId);
+    scheduleFuture = _loadSchedules();
+  }
+
+  Future<List<Schedule>> _loadSchedules() {
+    if (widget.tripRoomId == 0) {
+      return Future.value([]);
+    }
+
+    return ApiService.getSchedulesByTripRoomId(widget.tripRoomId);
   }
 
   @override
@@ -36,11 +44,18 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   void refreshSchedules() {
     setState(() {
-      scheduleFuture = ApiService.getSchedulesByTripRoomId(widget.tripRoomId);
+      scheduleFuture = _loadSchedules();
     });
   }
 
   Future<void> moveToAddScheduleScreen() async {
+    if (widget.tripRoomId == 0) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('먼저 홈 화면에서 여행방을 선택해주세요.')));
+      return;
+    }
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -115,6 +130,25 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.tripRoomId == 0) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+            children: [
+              const AppSectionHeader(
+                title: '여행 일정',
+                subtitle: '여행방을 선택하면 일정을 확인할 수 있어요',
+              ),
+              const SizedBox(height: 24),
+              _buildEmptyCard('선택된 여행방이 없습니다.\n홈 화면에서 여행방을 먼저 선택해주세요.'),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -356,6 +390,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           fontSize: 14,
           color: AppColors.subtitle,
           letterSpacing: -0.2,
+          height: 1.5,
         ),
       ),
     );

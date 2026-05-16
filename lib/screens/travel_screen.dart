@@ -22,9 +22,15 @@ class _TravelScreenState extends State<TravelScreen> {
   @override
   void initState() {
     super.initState();
-    destinationFuture = ApiService.getDestinationCandidatesByTripRoomId(
-      widget.tripRoomId,
-    );
+    destinationFuture = _loadDestinations();
+  }
+
+  Future<List<DestinationCandidate>> _loadDestinations() {
+    if (widget.tripRoomId == 0) {
+      return Future.value([]);
+    }
+
+    return ApiService.getDestinationCandidatesByTripRoomId(widget.tripRoomId);
   }
 
   @override
@@ -38,13 +44,18 @@ class _TravelScreenState extends State<TravelScreen> {
 
   void refreshDestinations() {
     setState(() {
-      destinationFuture = ApiService.getDestinationCandidatesByTripRoomId(
-        widget.tripRoomId,
-      );
+      destinationFuture = _loadDestinations();
     });
   }
 
   Future<void> moveToAddDestinationScreen() async {
+    if (widget.tripRoomId == 0) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('먼저 홈 화면에서 여행방을 선택해주세요.')));
+      return;
+    }
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -142,6 +153,25 @@ class _TravelScreenState extends State<TravelScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.tripRoomId == 0) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+            children: [
+              const AppSectionHeader(
+                title: '여행지 후보',
+                subtitle: '여행방을 선택하면 후보지를 확인할 수 있어요',
+              ),
+              const SizedBox(height: 24),
+              _buildEmptyCard('선택된 여행방이 없습니다.\n홈 화면에서 여행방을 먼저 선택해주세요.'),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -414,6 +444,7 @@ class _TravelScreenState extends State<TravelScreen> {
           fontSize: 14,
           color: AppColors.subtitle,
           letterSpacing: -0.2,
+          height: 1.5,
         ),
       ),
     );
