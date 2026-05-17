@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/destination_candidate.dart';
 import '../models/trip_room.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
@@ -124,6 +125,22 @@ class _HomeScreenState extends State<HomeScreen> {
         duration: const Duration(seconds: 1),
       ),
     );
+  }
+
+  Future<DestinationCandidate?> getConfirmedDestination(int tripRoomId) async {
+    final candidates = await ApiService.getDestinationCandidatesByTripRoomId(
+      tripRoomId,
+    );
+
+    final confirmedList = candidates
+        .where((candidate) => candidate.confirmed)
+        .toList();
+
+    if (confirmedList.isEmpty) {
+      return null;
+    }
+
+    return confirmedList.first;
   }
 
   @override
@@ -442,11 +459,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: 18),
-          _buildDetailBox(
-            icon: Icons.place_rounded,
-            label: '여행지',
-            value: trip.destination,
-          ),
+          _buildConfirmedDestinationBox(trip),
           const SizedBox(height: 10),
           _buildDetailBox(
             icon: Icons.date_range_rounded,
@@ -491,6 +504,45 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildConfirmedDestinationBox(TripRoom trip) {
+    return FutureBuilder<DestinationCandidate?>(
+      future: getConfirmedDestination(trip.id),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return _buildDetailBox(
+            icon: Icons.place_rounded,
+            label: '여행지',
+            value: '확인 중...',
+          );
+        }
+
+        if (snapshot.hasError) {
+          return _buildDetailBox(
+            icon: Icons.place_rounded,
+            label: '여행지',
+            value: trip.destination,
+          );
+        }
+
+        final confirmedDestination = snapshot.data;
+
+        if (confirmedDestination == null) {
+          return _buildDetailBox(
+            icon: Icons.place_rounded,
+            label: '여행지',
+            value: trip.destination,
+          );
+        }
+
+        return _buildDetailBox(
+          icon: Icons.verified_rounded,
+          label: '확정 여행지',
+          value: confirmedDestination.name,
+        );
+      },
     );
   }
 
@@ -698,6 +750,8 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Text(
               value,
               textAlign: TextAlign.right,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 13,
                 color: AppColors.subtitle,
