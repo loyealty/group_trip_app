@@ -131,7 +131,17 @@ class _TravelScreenState extends State<TravelScreen> {
     }
   }
 
-  Future<void> voteDestination(DestinationCandidate item) async {
+  Future<void> voteDestination(
+    DestinationCandidate item,
+    bool isVoteClosed,
+  ) async {
+    if (isVoteClosed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('최종 여행지가 확정되어 투표가 마감되었습니다.')),
+      );
+      return;
+    }
+
     try {
       await ApiService.voteDestinationCandidate(item.id);
 
@@ -236,6 +246,7 @@ class _TravelScreenState extends State<TravelScreen> {
             final confirmedDestinations = destinations
                 .where((item) => item.confirmed)
                 .toList();
+            final bool isVoteClosed = confirmedDestinations.isNotEmpty;
 
             return ListView(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
@@ -251,7 +262,9 @@ class _TravelScreenState extends State<TravelScreen> {
                   line1: confirmedDestinations.isEmpty
                       ? '아직 확정된 여행지가 없습니다'
                       : '확정 여행지 ${confirmedDestinations.first.name}',
-                  line2: '총 ${destinations.length}개의 후보지가 등록되어 있습니다',
+                  line2: isVoteClosed
+                      ? '최종 여행지가 확정되어 투표가 마감되었습니다'
+                      : '총 ${destinations.length}개의 후보지가 등록되어 있습니다',
                 ),
                 const SizedBox(height: 24),
                 _buildListTitle('후보 목록'),
@@ -262,7 +275,7 @@ class _TravelScreenState extends State<TravelScreen> {
                   ...destinations.map(
                     (item) => Padding(
                       padding: const EdgeInsets.only(bottom: 14),
-                      child: _buildDestinationCard(item),
+                      child: _buildDestinationCard(item, isVoteClosed),
                     ),
                   ),
                 const SizedBox(height: 10),
@@ -279,7 +292,7 @@ class _TravelScreenState extends State<TravelScreen> {
     );
   }
 
-  Widget _buildDestinationCard(DestinationCandidate item) {
+  Widget _buildDestinationCard(DestinationCandidate item, bool isVoteClosed) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(17),
@@ -425,26 +438,43 @@ class _TravelScreenState extends State<TravelScreen> {
             height: 46,
             child: DecoratedBox(
               decoration: BoxDecoration(
-                gradient: AppColors.mainGradient,
+                gradient: isVoteClosed
+                    ? const LinearGradient(
+                        colors: [Color(0xFFE5E7EB), Color(0xFFD1D5DB)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : AppColors.mainGradient,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.22),
+                    color: isVoteClosed
+                        ? Colors.black.withOpacity(0.06)
+                        : AppColors.primary.withOpacity(0.22),
                     blurRadius: 14,
                     offset: const Offset(0, 7),
                   ),
                 ],
               ),
               child: ElevatedButton.icon(
-                onPressed: () {
-                  voteDestination(item);
-                },
-                icon: const Icon(Icons.thumb_up_alt_rounded, size: 18),
-                label: const Text('투표하기'),
+                onPressed: isVoteClosed
+                    ? null
+                    : () {
+                        voteDestination(item, isVoteClosed);
+                      },
+                icon: Icon(
+                  isVoteClosed
+                      ? Icons.lock_rounded
+                      : Icons.thumb_up_alt_rounded,
+                  size: 18,
+                ),
+                label: Text(isVoteClosed ? '투표 마감' : '투표하기'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
+                  disabledBackgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
                   foregroundColor: Colors.white,
+                  disabledForegroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
