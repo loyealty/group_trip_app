@@ -5,6 +5,7 @@ class DestinationCandidate {
   final String region;
   final String description;
   final int votes;
+  final bool confirmed;
   final String createdAt;
 
   DestinationCandidate({
@@ -14,6 +15,7 @@ class DestinationCandidate {
     required this.region,
     required this.description,
     required this.votes,
+    required this.confirmed,
     required this.createdAt,
   });
 
@@ -25,6 +27,7 @@ class DestinationCandidate {
       region: json['region'] ?? '',
       description: json['description'] ?? '',
       votes: json['votes'] ?? 0,
+      confirmed: json['confirmed'] ?? false,
       createdAt: json['createdAt'] ?? '',
     );
   }

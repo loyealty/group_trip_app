@@ -151,6 +151,52 @@ class _TravelScreenState extends State<TravelScreen> {
     }
   }
 
+  Future<void> confirmDestination(DestinationCandidate item) async {
+    final bool? result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('여행지 확정'),
+        content: Text('${item.name} 후보를 최종 여행지로 확정할까요?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, false);
+            },
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
+            child: const Text('확정'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != true) {
+      return;
+    }
+
+    try {
+      await ApiService.confirmDestinationCandidate(item.id);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('${item.name} 여행지가 확정되었습니다.')));
+
+      refreshDestinations();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('여행지 확정 실패: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.tripRoomId == 0) {
@@ -187,19 +233,24 @@ class _TravelScreenState extends State<TravelScreen> {
             }
 
             final destinations = snapshot.data ?? [];
+            final confirmedDestinations = destinations
+                .where((item) => item.confirmed)
+                .toList();
 
             return ListView(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
               children: [
                 const AppSectionHeader(
                   title: '여행지 후보',
-                  subtitle: '선택한 여행방의 후보지를 등록하고 투표로 선택해보세요',
+                  subtitle: '투표 결과를 확인하고 최종 여행지를 확정해보세요',
                 ),
                 const SizedBox(height: 24),
                 AppSummaryCard(
                   icon: Icons.map_rounded,
                   title: '선택한 여행 후보지',
-                  line1: '여행방 번호 ${widget.tripRoomId}',
+                  line1: confirmedDestinations.isEmpty
+                      ? '아직 확정된 여행지가 없습니다'
+                      : '확정 여행지 ${confirmedDestinations.first.name}',
                   line2: '총 ${destinations.length}개의 후보지가 등록되어 있습니다',
                 ),
                 const SizedBox(height: 24),
@@ -242,11 +293,33 @@ class _TravelScreenState extends State<TravelScreen> {
             offset: const Offset(0, 10),
           ),
         ],
-        border: Border.all(color: AppColors.border),
+        border: Border.all(
+          color: item.confirmed ? AppColors.primaryDark : AppColors.border,
+          width: item.confirmed ? 1.6 : 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (item.confirmed) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.chipBackground,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: const Text(
+                '확정된 여행지',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.chipText,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ),
+          ],
           Row(
             children: [
               Container(
@@ -260,8 +333,8 @@ class _TravelScreenState extends State<TravelScreen> {
                   ),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Icon(
-                  Icons.place_rounded,
+                child: Icon(
+                  item.confirmed ? Icons.verified_rounded : Icons.place_rounded,
                   color: AppColors.primaryDark,
                   size: 28,
                 ),
@@ -328,6 +401,21 @@ class _TravelScreenState extends State<TravelScreen> {
                 onPressed: () {
                   deleteDestination(item);
                 },
+              ),
+              const SizedBox(width: 14),
+              _buildTextActionButton(
+                text: item.confirmed ? '확정됨' : '확정',
+                icon: item.confirmed
+                    ? Icons.verified_rounded
+                    : Icons.check_circle_rounded,
+                color: item.confirmed
+                    ? AppColors.subtitle
+                    : AppColors.primaryDark,
+                onPressed: item.confirmed
+                    ? () {}
+                    : () {
+                        confirmDestination(item);
+                      },
               ),
             ],
           ),

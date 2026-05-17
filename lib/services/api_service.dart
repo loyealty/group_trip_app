@@ -272,6 +272,16 @@ class ApiService {
     }
   }
 
+  static Future<void> confirmDestinationCandidate(int id) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/destination-candidates/$id/confirm'),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('여행지 후보 확정에 실패했습니다.');
+    }
+  }
+
   static Future<void> updateDestinationCandidate({
     required int id,
     required int tripRoomId,
