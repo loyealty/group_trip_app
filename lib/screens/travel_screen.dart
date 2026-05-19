@@ -6,6 +6,7 @@ import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_header.dart';
 import '../widgets/app_summary_card.dart';
 import 'add_destination_screen.dart';
+import 'add_schedule_screen.dart';
 
 class TravelScreen extends StatefulWidget {
   final int tripRoomId;
@@ -82,6 +83,30 @@ class _TravelScreenState extends State<TravelScreen> {
 
     if (result == true) {
       refreshDestinations();
+    }
+  }
+
+  Future<void> moveToAddScheduleFromDestination(
+    DestinationCandidate item,
+  ) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddScheduleScreen(
+          tripRoomId: item.tripRoomId,
+          initialTitle: '${item.name} 방문',
+          initialLocation: item.name,
+          initialDescription: '확정된 여행지 방문 일정',
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (result == true) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('확정 여행지가 일정에 추가되었습니다.')));
     }
   }
 
@@ -432,6 +457,46 @@ class _TravelScreenState extends State<TravelScreen> {
               ),
             ],
           ),
+          if (item.confirmed) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 46,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: AppColors.mainGradient,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.22),
+                      blurRadius: 14,
+                      offset: const Offset(0, 7),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    moveToAddScheduleFromDestination(item);
+                  },
+                  icon: const Icon(Icons.event_available_rounded, size: 18),
+                  label: const Text('일정에 추가'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    textStyle: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,

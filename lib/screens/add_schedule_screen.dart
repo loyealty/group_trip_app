@@ -5,10 +5,20 @@ import '../theme/app_colors.dart';
 import '../widgets/app_primary_button.dart';
 
 class AddScheduleScreen extends StatefulWidget {
-  const AddScheduleScreen({super.key, required this.tripRoomId, this.schedule});
+  const AddScheduleScreen({
+    super.key,
+    required this.tripRoomId,
+    this.schedule,
+    this.initialTitle,
+    this.initialLocation,
+    this.initialDescription,
+  });
 
   final int tripRoomId;
   final Schedule? schedule;
+  final String? initialTitle;
+  final String? initialLocation;
+  final String? initialDescription;
 
   @override
   State<AddScheduleScreen> createState() => _AddScheduleScreenState();
@@ -35,6 +45,10 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
       timeController.text = widget.schedule!.scheduleTime;
       placeController.text = widget.schedule!.location;
       memoController.text = widget.schedule!.description;
+    } else {
+      titleController.text = widget.initialTitle ?? '';
+      placeController.text = widget.initialLocation ?? '';
+      memoController.text = widget.initialDescription ?? '';
     }
   }
 
@@ -104,9 +118,11 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
   }
 
   Future<void> selectDate() async {
+    final DateTime now = DateTime.now();
+
     final DateTime? selectedDate = await showDatePicker(
       context: context,
-      initialDate: DateTime(2026, 4, 10),
+      initialDate: now,
       firstDate: DateTime(2024),
       lastDate: DateTime(2030),
     );
