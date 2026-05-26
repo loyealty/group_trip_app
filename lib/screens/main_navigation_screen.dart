@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/user.dart';
 import 'home_screen.dart';
 import 'schedule_screen.dart';
 import 'travel_screen.dart';
@@ -6,7 +7,9 @@ import 'expense_screen.dart';
 import 'my_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({super.key});
+  final AppUser loginUser;
+
+  const MainNavigationScreen({super.key, required this.loginUser});
 
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
@@ -38,6 +41,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       HomeScreen(
+        loginUser: widget.loginUser,
         selectedTripRoomId: selectedTripRoomId,
         onTripRoomSelected: changeTripRoom,
         onScheduleButtonPressed: moveToScheduleTab,
@@ -45,7 +49,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ScheduleScreen(tripRoomId: selectedTripRoomId),
       TravelScreen(tripRoomId: selectedTripRoomId),
       ExpenseScreen(tripRoomId: selectedTripRoomId),
-      MyScreen(tripRoomId: selectedTripRoomId),
+      MyScreen(tripRoomId: selectedTripRoomId, loginUser: widget.loginUser),
     ];
 
     return Scaffold(

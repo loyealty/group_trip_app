@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import '../models/destination_candidate.dart';
 import '../models/trip_room.dart';
+import '../models/user.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_primary_button.dart';
 import 'trip_room_create_screen.dart';
 
 class HomeScreen extends StatefulWidget {
+  final AppUser loginUser;
   final int selectedTripRoomId;
   final ValueChanged<int> onTripRoomSelected;
   final VoidCallback onScheduleButtonPressed;
 
   const HomeScreen({
     super.key,
+    required this.loginUser,
     required this.selectedTripRoomId,
     required this.onTripRoomSelected,
     required this.onScheduleButtonPressed,
@@ -28,19 +31,21 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    tripRoomsFuture = ApiService.getTripRooms();
+    tripRoomsFuture = ApiService.getTripRoomsByOwnerId(widget.loginUser.id);
   }
 
   void refreshTripRooms() {
     setState(() {
-      tripRoomsFuture = ApiService.getTripRooms();
+      tripRoomsFuture = ApiService.getTripRoomsByOwnerId(widget.loginUser.id);
     });
   }
 
   Future<void> moveToCreateTripRoom() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const TripRoomCreateScreen()),
+      MaterialPageRoute(
+        builder: (context) => TripRoomCreateScreen(loginUser: widget.loginUser),
+      ),
     );
 
     if (result == true) {
@@ -52,7 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => TripRoomCreateScreen(tripRoom: trip),
+        builder: (context) =>
+            TripRoomCreateScreen(loginUser: widget.loginUser, tripRoom: trip),
       ),
     );
 
@@ -170,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 20),
                   _buildCreateTripButton(),
                   const SizedBox(height: 20),
-                  _buildSectionTitle('나의 여행방', '진행 중인 그룹 여행을 선택해보세요'),
+                  _buildSectionTitle('나의 여행방', '내가 만든 그룹 여행을 선택해보세요'),
                   const SizedBox(height: 12),
                   if (tripRooms.isEmpty)
                     _buildEmptyTripCard()
@@ -268,9 +274,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 14),
-              const Text(
-                '함께 떠나는 여행',
-                style: TextStyle(
+              Text(
+                '${widget.loginUser.name}님의 여행',
+                style: const TextStyle(
                   fontSize: 25,
                   height: 1.15,
                   fontWeight: FontWeight.w900,
@@ -633,7 +639,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: const Center(
         child: Text(
-          '여행방 데이터가 없습니다.',
+          '아직 생성한 여행방이 없습니다.',
           style: TextStyle(fontSize: 15, color: AppColors.subtitle),
         ),
       ),

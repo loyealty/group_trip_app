@@ -5,11 +5,59 @@ import '../models/schedule.dart';
 import '../models/destination_candidate.dart';
 import '../models/expense.dart';
 import '../models/trip_member.dart';
+import '../models/user.dart';
 
 class ApiService {
   static const String baseUrl = 'http://10.0.2.2:8080';
 
   static Map<String, String> headers = {'Content-Type': 'application/json'};
+
+  static Future<AppUser> signup({
+    required String email,
+    required String password,
+    required String name,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/users/signup'),
+      headers: headers,
+      body: jsonEncode({'email': email, 'password': password, 'name': name}),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final data = jsonDecode(response.body);
+
+      if (data['success'] == true && data['user'] != null) {
+        return AppUser.fromJson(data['user']);
+      }
+
+      throw Exception(data['message'] ?? '회원가입에 실패했습니다.');
+    } else {
+      throw Exception('회원가입 요청에 실패했습니다.');
+    }
+  }
+
+  static Future<AppUser> login({
+    required String email,
+    required String password,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/users/login'),
+      headers: headers,
+      body: jsonEncode({'email': email, 'password': password}),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final data = jsonDecode(response.body);
+
+      if (data['success'] == true && data['user'] != null) {
+        return AppUser.fromJson(data['user']);
+      }
+
+      throw Exception(data['message'] ?? '로그인에 실패했습니다.');
+    } else {
+      throw Exception('로그인 요청에 실패했습니다.');
+    }
+  }
 
   static Future<List<TripRoom>> getTripRooms() async {
     final response = await http.get(Uri.parse('$baseUrl/api/trip-rooms'));
@@ -22,7 +70,21 @@ class ApiService {
     }
   }
 
+  static Future<List<TripRoom>> getTripRoomsByOwnerId(int ownerId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/trip-rooms/owner/$ownerId'),
+    );
+
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body);
+      return data.map((e) => TripRoom.fromJson(e)).toList();
+    } else {
+      throw Exception('내 여행방 데이터를 불러오지 못했습니다.');
+    }
+  }
+
   static Future<void> createTripRoom({
+    required int ownerId,
     required String title,
     required String description,
     required String destination,
@@ -35,7 +97,7 @@ class ApiService {
       body: jsonEncode({
         'title': title,
         'description': description,
-        'ownerId': 1,
+        'ownerId': ownerId,
         'startDate': startDate,
         'endDate': endDate,
         'destination': destination,
@@ -50,6 +112,7 @@ class ApiService {
 
   static Future<void> updateTripRoom({
     required int id,
+    required int ownerId,
     required String title,
     required String description,
     required String destination,
@@ -63,7 +126,7 @@ class ApiService {
       body: jsonEncode({
         'title': title,
         'description': description,
-        'ownerId': 1,
+        'ownerId': ownerId,
         'startDate': startDate,
         'endDate': endDate,
         'destination': destination,

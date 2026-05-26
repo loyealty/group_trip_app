@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
 import '../models/trip_member.dart';
+import '../models/user.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_menu_card.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_header.dart';
 import '../widgets/app_stat_card.dart';
+import 'login_screen.dart';
 
 class MyScreen extends StatefulWidget {
   final int tripRoomId;
+  final AppUser loginUser;
 
-  const MyScreen({super.key, required this.tripRoomId});
+  const MyScreen({
+    super.key,
+    required this.tripRoomId,
+    required this.loginUser,
+  });
 
   @override
   State<MyScreen> createState() => _MyScreenState();
@@ -38,6 +45,14 @@ class _MyScreenState extends State<MyScreen> {
     setState(() {
       memberFuture = ApiService.getTripMembersByTripRoomId(widget.tripRoomId);
     });
+  }
+
+  void logout() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      (route) => false,
+    );
   }
 
   Future<void> showAddMemberDialog() async {
@@ -263,6 +278,8 @@ class _MyScreenState extends State<MyScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 20),
+              _buildLogoutButton(),
             ],
           ),
         ),
@@ -342,27 +359,7 @@ class _MyScreenState extends State<MyScreen> {
                   subtitle: '서비스 이용 방법과 자주 묻는 질문을 확인할 수 있어요',
                 ),
                 const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: const BorderSide(color: Color(0xFFBFDBFE)),
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: const Text(
-                      '로그아웃',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
+                _buildLogoutButton(),
               ],
             );
           },
@@ -610,25 +607,28 @@ class _MyScreenState extends State<MyScreen> {
             ),
           ),
           const SizedBox(width: 16),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '김지윤',
-                  style: TextStyle(
+                  widget.loginUser.name,
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: AppColors.title,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'group_trip_user@email.com',
-                  style: TextStyle(fontSize: 14, color: AppColors.subtitle),
+                  widget.loginUser.email,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.subtitle,
+                  ),
                 ),
-                SizedBox(height: 6),
-                Text(
+                const SizedBox(height: 6),
+                const Text(
                   '함께하는 여행을 더 편하게 관리해보세요',
                   style: TextStyle(fontSize: 13, color: AppColors.subtitle),
                 ),
@@ -636,6 +636,27 @@ class _MyScreenState extends State<MyScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton(
+        onPressed: logout,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          side: const BorderSide(color: Color(0xFFBFDBFE)),
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        child: const Text(
+          '로그아웃',
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
       ),
     );
   }

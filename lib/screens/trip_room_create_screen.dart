@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import '../models/trip_room.dart';
+import '../models/user.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_primary_button.dart';
 
 class TripRoomCreateScreen extends StatefulWidget {
+  final AppUser loginUser;
   final TripRoom? tripRoom;
 
-  const TripRoomCreateScreen({super.key, this.tripRoom});
+  const TripRoomCreateScreen({
+    super.key,
+    required this.loginUser,
+    this.tripRoom,
+  });
 
   @override
   State<TripRoomCreateScreen> createState() => _TripRoomCreateScreenState();
@@ -103,6 +109,7 @@ class _TripRoomCreateScreenState extends State<TripRoomCreateScreen> {
       if (isEditMode) {
         await ApiService.updateTripRoom(
           id: widget.tripRoom!.id,
+          ownerId: widget.tripRoom!.ownerId,
           title: titleController.text.trim(),
           description: descriptionController.text.trim(),
           destination: destinationController.text.trim(),
@@ -112,6 +119,7 @@ class _TripRoomCreateScreenState extends State<TripRoomCreateScreen> {
         );
       } else {
         await ApiService.createTripRoom(
+          ownerId: widget.loginUser.id,
           title: titleController.text.trim(),
           description: descriptionController.text.trim(),
           destination: destinationController.text.trim(),
@@ -175,15 +183,15 @@ class _TripRoomCreateScreenState extends State<TripRoomCreateScreen> {
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: AppColors.border),
+            borderSide: const BorderSide(color: AppColors.border),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: AppColors.border),
+            borderSide: const BorderSide(color: AppColors.border),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
           ),
         ),
       ),
@@ -209,7 +217,7 @@ class _TripRoomCreateScreenState extends State<TripRoomCreateScreen> {
         ),
         child: Row(
           children: [
-            Icon(Icons.calendar_month_rounded, color: AppColors.primary),
+            const Icon(Icons.calendar_month_rounded, color: AppColors.primary),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -277,7 +285,7 @@ class _TripRoomCreateScreenState extends State<TripRoomCreateScreen> {
                 Text(
                   isEditMode
                       ? '여행방 정보를 수정하면 홈 화면에 바로 반영됩니다.'
-                      : '여행 정보를 입력하면 홈 화면에 바로 추가됩니다.',
+                      : '${widget.loginUser.name}님의 여행방으로 생성됩니다.',
                   style: const TextStyle(
                     fontSize: 13,
                     height: 1.4,
