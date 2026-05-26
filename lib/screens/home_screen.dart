@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/destination_candidate.dart';
 import '../models/trip_room.dart';
 import '../models/user.dart';
@@ -31,12 +32,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    tripRoomsFuture = ApiService.getTripRoomsByOwnerId(widget.loginUser.id);
+    tripRoomsFuture = ApiService.getTripRoomsByUserId(widget.loginUser.id);
   }
 
   void refreshTripRooms() {
     setState(() {
-      tripRoomsFuture = ApiService.getTripRoomsByOwnerId(widget.loginUser.id);
+      tripRoomsFuture = ApiService.getTripRoomsByUserId(widget.loginUser.id);
     });
   }
 
@@ -64,6 +65,74 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (result == true) {
       refreshTripRooms();
+    }
+  }
+
+  Future<void> showJoinTripRoomDialog() async {
+    String inviteCode = '';
+
+    final String? result = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('여행방 참여'),
+          content: TextField(
+            autofocus: true,
+            textCapitalization: TextCapitalization.characters,
+            decoration: const InputDecoration(
+              labelText: '초대 코드',
+              hintText: '예: A7K92Q',
+            ),
+            onChanged: (value) {
+              inviteCode = value.trim().toUpperCase();
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (inviteCode.isNotEmpty) {
+                  Navigator.pop(dialogContext, inviteCode);
+                }
+              },
+              child: const Text('참여'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == null || result.trim().isEmpty) {
+      return;
+    }
+
+    try {
+      final joinedTripRoom = await ApiService.joinTripRoomByInviteCode(
+        inviteCode: result.trim().toUpperCase(),
+        userId: widget.loginUser.id,
+        memberName: widget.loginUser.name,
+      );
+
+      if (!mounted) return;
+
+      widget.onTripRoomSelected(joinedTripRoom.id);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${joinedTripRoom.title} 여행방에 참여했습니다.')),
+      );
+
+      refreshTripRooms();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('여행방 참여 실패: $e')));
     }
   }
 
@@ -133,6 +202,18 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void copyInviteCode(String inviteCode) {
+    if (inviteCode.isEmpty) {
+      return;
+    }
+
+    Clipboard.setData(ClipboardData(text: inviteCode));
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('초대 코드 $inviteCode 복사 완료')));
+  }
+
   Future<DestinationCandidate?> getConfirmedDestination(int tripRoomId) async {
     final candidates = await ApiService.getDestinationCandidatesByTripRoomId(
       tripRoomId,
@@ -174,9 +255,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   _buildHeroHeader(),
                   const SizedBox(height: 20),
-                  _buildCreateTripButton(),
+                  _buildTripActionButtons(),
                   const SizedBox(height: 20),
-                  _buildSectionTitle('나의 여행방', '내가 만든 그룹 여행을 선택해보세요'),
+                  _buildSectionTitle('나의 여행방', '내가 만들거나 참여한 그룹 여행을 선택해보세요'),
                   const SizedBox(height: 12),
                   if (tripRooms.isEmpty)
                     _buildEmptyTripCard()
@@ -286,7 +367,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                '여행방을 선택하고 일정과 정산을 관리해보세요.',
+                '여행방을 만들거나 초대 코드로 참여해보세요.',
                 style: TextStyle(
                   fontSize: 13,
                   height: 1.4,
@@ -302,13 +383,23 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildTripActionButtons() {
+    return Row(
+      children: [
+        Expanded(child: _buildCreateTripButton()),
+        const SizedBox(width: 12),
+        Expanded(child: _buildJoinTripButton()),
+      ],
+    );
+  }
+
   Widget _buildCreateTripButton() {
     return InkWell(
       onTap: moveToCreateTripRoom,
       borderRadius: BorderRadius.circular(24),
       child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(17),
+        height: 106,
+        padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(24),
@@ -321,48 +412,67 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        child: Row(
+        child: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppColors.primarySoft,
-                borderRadius: BorderRadius.circular(17),
-              ),
-              child: const Icon(
-                Icons.add_rounded,
-                color: AppColors.primaryDark,
-                size: 28,
+            Icon(Icons.add_circle_rounded, color: AppColors.primaryDark),
+            Spacer(),
+            Text(
+              '새 여행방',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+                color: AppColors.title,
               ),
             ),
-            const SizedBox(width: 14),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '새 여행방 만들기',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.title,
-                      letterSpacing: -0.4,
-                    ),
-                  ),
-                  SizedBox(height: 5),
-                  Text(
-                    '여행 제목, 기간, 여행지를 입력해보세요.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.subtitle,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                ],
+            SizedBox(height: 3),
+            Text(
+              '직접 만들기',
+              style: TextStyle(fontSize: 12, color: AppColors.subtitle),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildJoinTripButton() {
+    return InkWell(
+      onTap: showJoinTripRoomDialog,
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        height: 106,
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF1E3A5F).withOpacity(0.06),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.link_rounded, color: AppColors.primaryDark),
+            Spacer(),
+            Text(
+              '여행방 참여',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+                color: AppColors.title,
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.subtitle),
+            SizedBox(height: 3),
+            Text(
+              '초대 코드 입력',
+              style: TextStyle(fontSize: 12, color: AppColors.subtitle),
+            ),
           ],
         ),
       ),
@@ -371,6 +481,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildTripCard(TripRoom trip) {
     final bool isSelected = trip.id == widget.selectedTripRoomId;
+    final bool isOwner = trip.ownerId == widget.loginUser.id;
 
     return Container(
       width: double.infinity,
@@ -461,7 +572,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              _buildStatusChip(_getKoreanStatus(trip.status)),
+              _buildStatusChip(isOwner ? '방장' : '참여중'),
             ],
           ),
           const SizedBox(height: 18),
@@ -473,34 +584,37 @@ class _HomeScreenState extends State<HomeScreen> {
             value:
                 '${_formatDate(trip.startDate)} ~ ${_formatDate(trip.endDate)}',
           ),
+          const SizedBox(height: 10),
+          _buildInviteCodeBox(trip),
           const SizedBox(height: 14),
-          Row(
-            children: [
-              TextButton.icon(
-                onPressed: () {
-                  moveToEditTripRoom(trip);
-                },
-                icon: const Icon(Icons.edit_rounded, size: 17),
-                label: const Text('수정'),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primaryDark,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+          if (isOwner)
+            Row(
+              children: [
+                TextButton.icon(
+                  onPressed: () {
+                    moveToEditTripRoom(trip);
+                  },
+                  icon: const Icon(Icons.edit_rounded, size: 17),
+                  label: const Text('수정'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primaryDark,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
                 ),
-              ),
-              TextButton.icon(
-                onPressed: () {
-                  deleteTripRoom(trip);
-                },
-                icon: const Icon(Icons.delete_outline_rounded, size: 17),
-                label: const Text('삭제'),
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.redAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                TextButton.icon(
+                  onPressed: () {
+                    deleteTripRoom(trip);
+                  },
+                  icon: const Icon(Icons.delete_outline_rounded, size: 17),
+                  label: const Text('삭제'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.redAccent,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
+              ],
+            ),
+          if (isOwner) const SizedBox(height: 8),
           AppPrimaryButton(
             text: isSelected ? '선택한 여행 일정 보기' : '이 여행방 일정 보기',
             icon: Icons.arrow_forward_rounded,
@@ -509,6 +623,57 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildInviteCodeBox(TripRoom trip) {
+    return InkWell(
+      onTap: () {
+        copyInviteCode(trip.inviteCode);
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+        decoration: BoxDecoration(
+          color: AppColors.cardSoft,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.link_rounded,
+              size: 18,
+              color: AppColors.primaryDark,
+            ),
+            const SizedBox(width: 9),
+            const Text(
+              '초대 코드',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: AppColors.body,
+                letterSpacing: -0.2,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                trip.inviteCode.isEmpty ? '생성 전' : trip.inviteCode,
+                textAlign: TextAlign.right,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.primaryDark,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Icon(Icons.copy_rounded, size: 16, color: AppColors.subtitle),
+          ],
+        ),
       ),
     );
   }
@@ -639,7 +804,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: const Center(
         child: Text(
-          '아직 생성한 여행방이 없습니다.',
+          '아직 참여 중인 여행방이 없습니다.',
           style: TextStyle(fontSize: 15, color: AppColors.subtitle),
         ),
       ),
@@ -813,19 +978,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ],
     );
-  }
-
-  String _getKoreanStatus(String status) {
-    switch (status) {
-      case 'PLANNING':
-        return '계획 중';
-      case 'CONFIRMED':
-        return '확정';
-      case 'COMPLETED':
-        return '완료';
-      default:
-        return status;
-    }
   }
 
   String _formatDate(String date) {

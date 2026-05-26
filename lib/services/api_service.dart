@@ -83,6 +83,47 @@ class ApiService {
     }
   }
 
+  static Future<List<TripRoom>> getTripRoomsByUserId(int userId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/trip-rooms/user/$userId'),
+    );
+
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body);
+      return data.map((e) => TripRoom.fromJson(e)).toList();
+    } else {
+      throw Exception('참여 중인 여행방 데이터를 불러오지 못했습니다.');
+    }
+  }
+
+  static Future<TripRoom> joinTripRoomByInviteCode({
+    required String inviteCode,
+    required int userId,
+    required String memberName,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/trip-rooms/join'),
+      headers: headers,
+      body: jsonEncode({
+        'inviteCode': inviteCode,
+        'userId': userId,
+        'memberName': memberName,
+      }),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final data = jsonDecode(response.body);
+
+      if (data['success'] == true && data['tripRoom'] != null) {
+        return TripRoom.fromJson(data['tripRoom']);
+      }
+
+      throw Exception(data['message'] ?? '여행방 참여에 실패했습니다.');
+    } else {
+      throw Exception('여행방 참여 요청에 실패했습니다.');
+    }
+  }
+
   static Future<void> createTripRoom({
     required int ownerId,
     required String title,
@@ -119,19 +160,26 @@ class ApiService {
     required String startDate,
     required String endDate,
     String status = 'PLANNING',
+    String? inviteCode,
   }) async {
+    final Map<String, dynamic> body = {
+      'title': title,
+      'description': description,
+      'ownerId': ownerId,
+      'startDate': startDate,
+      'endDate': endDate,
+      'destination': destination,
+      'status': status,
+    };
+
+    if (inviteCode != null && inviteCode.isNotEmpty) {
+      body['inviteCode'] = inviteCode;
+    }
+
     final response = await http.put(
       Uri.parse('$baseUrl/api/trip-rooms/$id'),
       headers: headers,
-      body: jsonEncode({
-        'title': title,
-        'description': description,
-        'ownerId': ownerId,
-        'startDate': startDate,
-        'endDate': endDate,
-        'destination': destination,
-        'status': status,
-      }),
+      body: jsonEncode(body),
     );
 
     if (response.statusCode != 200) {
@@ -166,17 +214,24 @@ class ApiService {
 
   static Future<void> createTripMember({
     required int tripRoomId,
+    int? userId,
     required String memberName,
     String role = 'MEMBER',
   }) async {
+    final Map<String, dynamic> body = {
+      'tripRoomId': tripRoomId,
+      'memberName': memberName,
+      'role': role,
+    };
+
+    if (userId != null && userId != 0) {
+      body['userId'] = userId;
+    }
+
     final response = await http.post(
       Uri.parse('$baseUrl/api/trip-members'),
       headers: headers,
-      body: jsonEncode({
-        'tripRoomId': tripRoomId,
-        'memberName': memberName,
-        'role': role,
-      }),
+      body: jsonEncode(body),
     );
 
     if (response.statusCode != 200 && response.statusCode != 201) {
@@ -187,17 +242,24 @@ class ApiService {
   static Future<void> updateTripMember({
     required int id,
     required int tripRoomId,
+    int? userId,
     required String memberName,
     String role = 'MEMBER',
   }) async {
+    final Map<String, dynamic> body = {
+      'tripRoomId': tripRoomId,
+      'memberName': memberName,
+      'role': role,
+    };
+
+    if (userId != null && userId != 0) {
+      body['userId'] = userId;
+    }
+
     final response = await http.put(
       Uri.parse('$baseUrl/api/trip-members/$id'),
       headers: headers,
-      body: jsonEncode({
-        'tripRoomId': tripRoomId,
-        'memberName': memberName,
-        'role': role,
-      }),
+      body: jsonEncode(body),
     );
 
     if (response.statusCode != 200) {

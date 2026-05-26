@@ -7,6 +7,7 @@ class TripRoom {
   final String endDate;
   final String destination;
   final String status;
+  final String inviteCode;
   final String createdAt;
 
   TripRoom({
@@ -18,6 +19,7 @@ class TripRoom {
     required this.endDate,
     required this.destination,
     required this.status,
+    required this.inviteCode,
     required this.createdAt,
   });
 
@@ -31,6 +33,7 @@ class TripRoom {
       endDate: json['endDate'] ?? '',
       destination: json['destination'] ?? '',
       status: json['status'] ?? '',
+      inviteCode: json['inviteCode'] ?? '',
       createdAt: json['createdAt'] ?? '',
     );
   }
