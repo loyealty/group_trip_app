@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/destination_candidate.dart';
+import '../models/trip_room.dart';
+import '../models/user.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_primary_button.dart';
@@ -10,8 +12,13 @@ import 'add_schedule_screen.dart';
 
 class TravelScreen extends StatefulWidget {
   final int tripRoomId;
+  final AppUser loginUser;
 
-  const TravelScreen({super.key, required this.tripRoomId});
+  const TravelScreen({
+    super.key,
+    required this.tripRoomId,
+    required this.loginUser,
+  });
 
   @override
   State<TravelScreen> createState() => _TravelScreenState();
@@ -19,11 +26,14 @@ class TravelScreen extends StatefulWidget {
 
 class _TravelScreenState extends State<TravelScreen> {
   late Future<List<DestinationCandidate>> destinationFuture;
+  bool isOwner = false;
+  bool isPermissionLoading = false;
 
   @override
   void initState() {
     super.initState();
     destinationFuture = _loadDestinations();
+    loadOwnerPermission();
   }
 
   Future<List<DestinationCandidate>> _loadDestinations() {
@@ -34,12 +44,50 @@ class _TravelScreenState extends State<TravelScreen> {
     return ApiService.getDestinationCandidatesByTripRoomId(widget.tripRoomId);
   }
 
+  Future<void> loadOwnerPermission() async {
+    if (widget.tripRoomId == 0) {
+      setState(() {
+        isOwner = false;
+      });
+      return;
+    }
+
+    setState(() {
+      isPermissionLoading = true;
+    });
+
+    try {
+      final TripRoom tripRoom = await ApiService.getTripRoomById(
+        widget.tripRoomId,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        isOwner = tripRoom.ownerId == widget.loginUser.id;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        isOwner = false;
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          isPermissionLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   void didUpdateWidget(covariant TravelScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     if (oldWidget.tripRoomId != widget.tripRoomId) {
       refreshDestinations();
+      loadOwnerPermission();
     }
   }
 
@@ -57,6 +105,13 @@ class _TravelScreenState extends State<TravelScreen> {
       return;
     }
 
+    if (!isOwner) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('방장만 여행지 후보를 추가할 수 있습니다.')));
+      return;
+    }
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -71,6 +126,13 @@ class _TravelScreenState extends State<TravelScreen> {
   }
 
   Future<void> moveToEditDestinationScreen(DestinationCandidate item) async {
+    if (!isOwner) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('방장만 여행지 후보를 수정할 수 있습니다.')));
+      return;
+    }
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -89,6 +151,13 @@ class _TravelScreenState extends State<TravelScreen> {
   Future<void> moveToAddScheduleFromDestination(
     DestinationCandidate item,
   ) async {
+    if (!isOwner) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('방장만 확정 여행지를 일정에 추가할 수 있습니다.')),
+      );
+      return;
+    }
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -111,6 +180,13 @@ class _TravelScreenState extends State<TravelScreen> {
   }
 
   Future<void> deleteDestination(DestinationCandidate item) async {
+    if (!isOwner) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('방장만 여행지 후보를 삭제할 수 있습니다.')));
+      return;
+    }
+
     final bool? result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -187,6 +263,13 @@ class _TravelScreenState extends State<TravelScreen> {
   }
 
   Future<void> confirmDestination(DestinationCandidate item) async {
+    if (!isOwner) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('방장만 최종 여행지를 확정할 수 있습니다.')));
+      return;
+    }
+
     final bool? result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -259,7 +342,8 @@ class _TravelScreenState extends State<TravelScreen> {
         child: FutureBuilder<List<DestinationCandidate>>(
           future: destinationFuture,
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+            if (snapshot.connectionState == ConnectionState.waiting ||
+                isPermissionLoading) {
               return const Center(child: CircularProgressIndicator());
             }
 
@@ -276,11 +360,15 @@ class _TravelScreenState extends State<TravelScreen> {
             return ListView(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
               children: [
-                const AppSectionHeader(
+                AppSectionHeader(
                   title: '여행지 후보',
-                  subtitle: '투표 결과를 확인하고 최종 여행지를 확정해보세요',
+                  subtitle: isOwner
+                      ? '방장은 후보를 관리하고 최종 여행지를 확정할 수 있어요'
+                      : '참여자는 여행지 후보를 확인하고 투표할 수 있어요',
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 14),
+                _buildRoleInfoCard(),
+                const SizedBox(height: 18),
                 AppSummaryCard(
                   icon: Icons.map_rounded,
                   title: '선택한 여행 후보지',
@@ -304,15 +392,51 @@ class _TravelScreenState extends State<TravelScreen> {
                     ),
                   ),
                 const SizedBox(height: 10),
-                AppPrimaryButton(
-                  text: '여행지 후보 추가',
-                  icon: Icons.add_location_alt_rounded,
-                  onPressed: moveToAddDestinationScreen,
-                ),
+                if (isOwner)
+                  AppPrimaryButton(
+                    text: '여행지 후보 추가',
+                    icon: Icons.add_location_alt_rounded,
+                    onPressed: moveToAddDestinationScreen,
+                  ),
               ],
             );
           },
         ),
+      ),
+    );
+  }
+
+  Widget _buildRoleInfoCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isOwner ? Icons.admin_panel_settings_rounded : Icons.person_rounded,
+            color: AppColors.primaryDark,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              isOwner
+                  ? '현재 계정은 이 여행방의 방장입니다. 후보 추가, 수정, 삭제, 확정이 가능합니다.'
+                  : '현재 계정은 참여자입니다. 여행지 후보 조회와 투표만 가능합니다.',
+              style: const TextStyle(
+                fontSize: 13,
+                height: 1.4,
+                color: AppColors.subtitle,
+                letterSpacing: -0.2,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -421,43 +545,44 @@ class _TravelScreenState extends State<TravelScreen> {
             ),
           ],
           const SizedBox(height: 10),
-          Row(
-            children: [
-              _buildTextActionButton(
-                text: '수정',
-                icon: Icons.edit_rounded,
-                color: AppColors.primaryDark,
-                onPressed: () {
-                  moveToEditDestinationScreen(item);
-                },
-              ),
-              const SizedBox(width: 14),
-              _buildTextActionButton(
-                text: '삭제',
-                icon: Icons.delete_outline_rounded,
-                color: AppColors.danger,
-                onPressed: () {
-                  deleteDestination(item);
-                },
-              ),
-              const SizedBox(width: 14),
-              _buildTextActionButton(
-                text: item.confirmed ? '확정됨' : '확정',
-                icon: item.confirmed
-                    ? Icons.verified_rounded
-                    : Icons.check_circle_rounded,
-                color: item.confirmed
-                    ? AppColors.subtitle
-                    : AppColors.primaryDark,
-                onPressed: item.confirmed
-                    ? () {}
-                    : () {
-                        confirmDestination(item);
-                      },
-              ),
-            ],
-          ),
-          if (item.confirmed) ...[
+          if (isOwner)
+            Row(
+              children: [
+                _buildTextActionButton(
+                  text: '수정',
+                  icon: Icons.edit_rounded,
+                  color: AppColors.primaryDark,
+                  onPressed: () {
+                    moveToEditDestinationScreen(item);
+                  },
+                ),
+                const SizedBox(width: 14),
+                _buildTextActionButton(
+                  text: '삭제',
+                  icon: Icons.delete_outline_rounded,
+                  color: AppColors.danger,
+                  onPressed: () {
+                    deleteDestination(item);
+                  },
+                ),
+                const SizedBox(width: 14),
+                _buildTextActionButton(
+                  text: item.confirmed ? '확정됨' : '확정',
+                  icon: item.confirmed
+                      ? Icons.verified_rounded
+                      : Icons.check_circle_rounded,
+                  color: item.confirmed
+                      ? AppColors.subtitle
+                      : AppColors.primaryDark,
+                  onPressed: item.confirmed
+                      ? () {}
+                      : () {
+                          confirmDestination(item);
+                        },
+                ),
+              ],
+            ),
+          if (item.confirmed && isOwner) ...[
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,

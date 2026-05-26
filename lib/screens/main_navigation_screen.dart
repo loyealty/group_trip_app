@@ -47,7 +47,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         onScheduleButtonPressed: moveToScheduleTab,
       ),
       ScheduleScreen(tripRoomId: selectedTripRoomId),
-      TravelScreen(tripRoomId: selectedTripRoomId),
+      TravelScreen(tripRoomId: selectedTripRoomId, loginUser: widget.loginUser),
       ExpenseScreen(tripRoomId: selectedTripRoomId),
       MyScreen(tripRoomId: selectedTripRoomId, loginUser: widget.loginUser),
     ];

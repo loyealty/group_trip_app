@@ -96,6 +96,17 @@ class ApiService {
     }
   }
 
+  static Future<TripRoom> getTripRoomById(int id) async {
+    final response = await http.get(Uri.parse('$baseUrl/api/trip-rooms/$id'));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return TripRoom.fromJson(data);
+    } else {
+      throw Exception('여행방 정보를 불러오지 못했습니다.');
+    }
+  }
+
   static Future<TripRoom> joinTripRoomByInviteCode({
     required String inviteCode,
     required int userId,
