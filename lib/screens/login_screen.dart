@@ -19,16 +19,34 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool isLoading = false;
 
+  bool isValidEmail(String email) {
+    final emailRegex = RegExp(
+      r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$',
+    );
+    return emailRegex.hasMatch(email);
+  }
+
   Future<void> login() async {
+    FocusScope.of(context).unfocus();
+
     if (isLoading) {
       return;
     }
 
-    if (emailController.text.trim().isEmpty ||
-        passwordController.text.trim().isEmpty) {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('이메일과 비밀번호를 입력해주세요.')));
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('올바른 이메일 형식으로 입력해주세요.')));
       return;
     }
 
@@ -38,8 +56,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final AppUser user = await ApiService.login(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+        email: email,
+        password: password,
       );
 
       if (!mounted) return;
@@ -96,6 +114,14 @@ class _LoginScreenState extends State<LoginScreen> {
       child: TextField(
         controller: controller,
         obscureText: obscureText,
+        keyboardType: obscureText
+            ? TextInputType.visiblePassword
+            : TextInputType.emailAddress,
+        textInputAction: obscureText
+            ? TextInputAction.done
+            : TextInputAction.next,
+        enableSuggestions: false,
+        autocorrect: false,
         decoration: InputDecoration(
           prefixIcon: Icon(icon, color: AppColors.primary),
           labelText: label,
@@ -105,6 +131,15 @@ class _LoginScreenState extends State<LoginScreen> {
             horizontal: 16,
             vertical: 14,
           ),
+          suffixIcon: controller.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear_rounded),
+                  onPressed: () {
+                    controller.clear();
+                    setState(() {});
+                  },
+                )
+              : null,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: const BorderSide(color: AppColors.border),
@@ -118,6 +153,16 @@ class _LoginScreenState extends State<LoginScreen> {
             borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
           ),
         ),
+        onChanged: (value) {
+          setState(() {});
+        },
+        onSubmitted: (value) {
+          if (obscureText) {
+            login();
+          } else {
+            FocusScope.of(context).nextFocus();
+          }
+        },
       ),
     );
   }
@@ -222,15 +267,21 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 36, 20, 28),
-          child: Column(
-            children: [
-              buildHeader(),
-              const SizedBox(height: 22),
-              buildLoginCard(),
-            ],
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: SafeArea(
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.fromLTRB(20, 36, 20, 28),
+            child: Column(
+              children: [
+                buildHeader(),
+                const SizedBox(height: 22),
+                buildLoginCard(),
+              ],
+            ),
           ),
         ),
       ),

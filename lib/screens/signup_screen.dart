@@ -17,17 +17,42 @@ class _SignupScreenState extends State<SignupScreen> {
 
   bool isLoading = false;
 
+  bool isValidEmail(String email) {
+    final emailRegex = RegExp(
+      r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$',
+    );
+    return emailRegex.hasMatch(email);
+  }
+
   Future<void> signup() async {
+    FocusScope.of(context).unfocus();
+
     if (isLoading) {
       return;
     }
 
-    if (emailController.text.trim().isEmpty ||
-        passwordController.text.trim().isEmpty ||
-        nameController.text.trim().isEmpty) {
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('모든 정보를 입력해주세요.')));
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('올바른 이메일 형식으로 입력해주세요.')));
+      return;
+    }
+
+    if (password.length < 4) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('비밀번호는 4자 이상 입력해주세요.')));
       return;
     }
 
@@ -36,11 +61,7 @@ class _SignupScreenState extends State<SignupScreen> {
     });
 
     try {
-      await ApiService.signup(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-        name: nameController.text.trim(),
-      );
+      await ApiService.signup(email: email, password: password, name: name);
 
       if (!mounted) return;
 
@@ -79,6 +100,16 @@ class _SignupScreenState extends State<SignupScreen> {
       child: TextField(
         controller: controller,
         obscureText: obscureText,
+        keyboardType: obscureText
+            ? TextInputType.visiblePassword
+            : label == '이메일'
+            ? TextInputType.emailAddress
+            : TextInputType.text,
+        textInputAction: obscureText
+            ? TextInputAction.done
+            : TextInputAction.next,
+        enableSuggestions: false,
+        autocorrect: false,
         decoration: InputDecoration(
           prefixIcon: Icon(icon, color: AppColors.primary),
           labelText: label,
@@ -88,6 +119,15 @@ class _SignupScreenState extends State<SignupScreen> {
             horizontal: 16,
             vertical: 14,
           ),
+          suffixIcon: controller.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear_rounded),
+                  onPressed: () {
+                    controller.clear();
+                    setState(() {});
+                  },
+                )
+              : null,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: const BorderSide(color: AppColors.border),
@@ -101,6 +141,16 @@ class _SignupScreenState extends State<SignupScreen> {
             borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
           ),
         ),
+        onChanged: (value) {
+          setState(() {});
+        },
+        onSubmitted: (value) {
+          if (obscureText) {
+            signup();
+          } else {
+            FocusScope.of(context).nextFocus();
+          }
+        },
       ),
     );
   }
@@ -225,14 +275,20 @@ class _SignupScreenState extends State<SignupScreen> {
         foregroundColor: AppColors.title,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
-        child: Column(
-          children: [
-            buildGuideCard(),
-            const SizedBox(height: 18),
-            buildFormCard(),
-          ],
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
+          child: Column(
+            children: [
+              buildGuideCard(),
+              const SizedBox(height: 18),
+              buildFormCard(),
+            ],
+          ),
         ),
       ),
     );
