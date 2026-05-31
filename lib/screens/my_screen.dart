@@ -47,6 +47,13 @@ class _MyScreenState extends State<MyScreen> {
     });
   }
 
+  bool isLoginUserOwner(List<TripMember> members) {
+    return members.any(
+      (member) =>
+          member.userId == widget.loginUser.id && member.role == 'OWNER',
+    );
+  }
+
   void logout() {
     Navigator.pushAndRemoveUntil(
       context,
@@ -293,6 +300,7 @@ class _MyScreenState extends State<MyScreen> {
           future: memberFuture,
           builder: (context, snapshot) {
             final members = snapshot.data ?? [];
+            final bool isOwner = isLoginUserOwner(members);
 
             return ListView(
               padding: const EdgeInsets.all(20),
@@ -324,7 +332,7 @@ class _MyScreenState extends State<MyScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                _buildMemberSection(snapshot),
+                _buildMemberSection(snapshot, isOwner),
                 const SizedBox(height: 24),
                 const Text(
                   '내 메뉴',
@@ -368,7 +376,10 @@ class _MyScreenState extends State<MyScreen> {
     );
   }
 
-  Widget _buildMemberSection(AsyncSnapshot<List<TripMember>> snapshot) {
+  Widget _buildMemberSection(
+    AsyncSnapshot<List<TripMember>> snapshot,
+    bool isOwner,
+  ) {
     if (snapshot.connectionState == ConnectionState.waiting) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -452,13 +463,15 @@ class _MyScreenState extends State<MyScreen> {
               if (members.isEmpty)
                 _buildEmptyMemberCard()
               else
-                ...members.map((member) => _buildMemberItem(member)),
-              const SizedBox(height: 14),
-              AppPrimaryButton(
-                text: '멤버 추가',
-                icon: Icons.person_add_rounded,
-                onPressed: showAddMemberDialog,
-              ),
+                ...members.map((member) => _buildMemberItem(member, isOwner)),
+              if (isOwner) ...[
+                const SizedBox(height: 14),
+                AppPrimaryButton(
+                  text: '멤버 추가',
+                  icon: Icons.person_add_rounded,
+                  onPressed: showAddMemberDialog,
+                ),
+              ],
             ],
           ),
         ),
@@ -483,7 +496,7 @@ class _MyScreenState extends State<MyScreen> {
     );
   }
 
-  Widget _buildMemberItem(TripMember member) {
+  Widget _buildMemberItem(TripMember member, bool isOwner) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 10),
@@ -538,34 +551,36 @@ class _MyScreenState extends State<MyScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton.icon(
-                onPressed: () {
-                  showEditMemberDialog(member);
-                },
-                icon: const Icon(Icons.edit_rounded, size: 16),
-                label: const Text('수정'),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primaryDark,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+          if (isOwner) ...[
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton.icon(
+                  onPressed: () {
+                    showEditMemberDialog(member);
+                  },
+                  icon: const Icon(Icons.edit_rounded, size: 16),
+                  label: const Text('수정'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primaryDark,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
                 ),
-              ),
-              TextButton.icon(
-                onPressed: () {
-                  deleteMember(member);
-                },
-                icon: const Icon(Icons.delete_outline_rounded, size: 16),
-                label: const Text('삭제'),
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.redAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                TextButton.icon(
+                  onPressed: () {
+                    deleteMember(member);
+                  },
+                  icon: const Icon(Icons.delete_outline_rounded, size: 16),
+                  label: const Text('삭제'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.redAccent,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     );
