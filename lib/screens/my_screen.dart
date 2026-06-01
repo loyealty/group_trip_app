@@ -3,7 +3,6 @@ import '../models/trip_member.dart';
 import '../models/user.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
-import '../widgets/app_menu_card.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_header.dart';
 import '../widgets/app_stat_card.dart';
@@ -70,6 +69,12 @@ class _MyScreenState extends State<MyScreen> {
       MaterialPageRoute(builder: (context) => const LoginScreen()),
       (route) => false,
     );
+  }
+
+  void showReadySnackBar(String title) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('$title 기능은 준비 중입니다.')));
   }
 
   Future<void> showAddMemberDialog() async {
@@ -296,6 +301,8 @@ class _MyScreenState extends State<MyScreen> {
                 ),
               ),
               const SizedBox(height: 20),
+              _buildMenuSection(),
+              const SizedBox(height: 20),
               _buildLogoutButton(),
             ],
           ),
@@ -344,38 +351,7 @@ class _MyScreenState extends State<MyScreen> {
                 const SizedBox(height: 24),
                 _buildMemberSection(snapshot, isOwner),
                 const SizedBox(height: 24),
-                const Text(
-                  '내 메뉴',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.title,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                const AppMenuCard(
-                  icon: Icons.group_rounded,
-                  title: '내 여행방 관리',
-                  subtitle: '참여 중인 여행방과 초대 내역을 확인할 수 있어요',
-                ),
-                const SizedBox(height: 12),
-                const AppMenuCard(
-                  icon: Icons.notifications_rounded,
-                  title: '알림 설정',
-                  subtitle: '일정 변경, 초대 요청, 정산 알림을 관리할 수 있어요',
-                ),
-                const SizedBox(height: 12),
-                const AppMenuCard(
-                  icon: Icons.settings_rounded,
-                  title: '앱 설정',
-                  subtitle: '테마, 계정, 기타 설정을 변경할 수 있어요',
-                ),
-                const SizedBox(height: 12),
-                const AppMenuCard(
-                  icon: Icons.help_outline_rounded,
-                  title: '도움말',
-                  subtitle: '서비스 이용 방법과 자주 묻는 질문을 확인할 수 있어요',
-                ),
+                _buildMenuSection(),
                 const SizedBox(height: 20),
                 _buildLogoutButton(),
               ],
@@ -648,6 +624,173 @@ class _MyScreenState extends State<MyScreen> {
           ),
         ];
       },
+    );
+  }
+
+  Widget _buildMenuSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          '설정 및 안내',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.title,
+          ),
+        ),
+        const SizedBox(height: 14),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.border),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF1E3A5F).withOpacity(0.05),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              _buildMenuItem(
+                icon: Icons.group_rounded,
+                title: '내 여행방 관리',
+                subtitle: '참여 중인 여행방과 초대 내역 확인',
+                badgeText: '보기',
+                isReady: true,
+                onTap: () {
+                  showReadySnackBar('내 여행방 관리');
+                },
+              ),
+              _buildMenuDivider(),
+              _buildMenuItem(
+                icon: Icons.notifications_rounded,
+                title: '알림 설정',
+                subtitle: '일정, 초대, 정산 알림 관리',
+                badgeText: '준비 중',
+                isReady: false,
+                onTap: () {
+                  showReadySnackBar('알림 설정');
+                },
+              ),
+              _buildMenuDivider(),
+              _buildMenuItem(
+                icon: Icons.settings_rounded,
+                title: '앱 설정',
+                subtitle: '계정 및 화면 설정 관리',
+                badgeText: '준비 중',
+                isReady: false,
+                onTap: () {
+                  showReadySnackBar('앱 설정');
+                },
+              ),
+              _buildMenuDivider(),
+              _buildMenuItem(
+                icon: Icons.help_outline_rounded,
+                title: '도움말',
+                subtitle: '서비스 이용 방법 확인',
+                badgeText: '준비 중',
+                isReady: false,
+                onTap: () {
+                  showReadySnackBar('도움말');
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMenuItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String badgeText,
+    required bool isReady,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: AppColors.primarySoft,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Icon(icon, color: AppColors.primaryDark, size: 22),
+            ),
+            const SizedBox(width: 13),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.title,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.subtitle,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+              decoration: BoxDecoration(
+                color: isReady ? AppColors.chipBackground : AppColors.cardSoft,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: isReady ? Colors.transparent : AppColors.border,
+                ),
+              ),
+              child: Text(
+                badgeText,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: isReady ? AppColors.chipText : AppColors.subtitle,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuDivider() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 69),
+      child: Container(height: 1, color: AppColors.border.withOpacity(0.75)),
     );
   }
 
