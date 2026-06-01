@@ -442,41 +442,14 @@ class _MyScreenState extends State<MyScreen> {
           ),
           child: Column(
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: AppColors.primarySoft,
-                      borderRadius: BorderRadius.circular(17),
-                    ),
-                    child: const Icon(
-                      Icons.groups_rounded,
-                      color: AppColors.primaryDark,
-                      size: 26,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Text(
-                      '$tripRoomName 참여 멤버',
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.title,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+              _buildMemberSectionHeader(tripRoomName, members.length),
+              const SizedBox(height: 14),
               if (members.isEmpty)
                 _buildEmptyMemberCard()
               else
                 ...members.map((member) => _buildMemberItem(member, isOwner)),
               if (isOwner) ...[
-                const SizedBox(height: 14),
+                const SizedBox(height: 10),
                 AppPrimaryButton(
                   text: '멤버 추가',
                   icon: Icons.person_add_rounded,
@@ -490,14 +463,63 @@ class _MyScreenState extends State<MyScreen> {
     );
   }
 
+  Widget _buildMemberSectionHeader(String tripRoomName, int memberCount) {
+    return Row(
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: AppColors.primarySoft,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Icon(
+            Icons.groups_rounded,
+            color: AppColors.primaryDark,
+            size: 24,
+          ),
+        ),
+        const SizedBox(width: 13),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '참여 멤버',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.title,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '$tripRoomName · ${memberCount}명',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.subtitle,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildEmptyMemberCard() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: AppColors.cardSoft,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
       child: const Text(
@@ -510,90 +532,122 @@ class _MyScreenState extends State<MyScreen> {
   Widget _buildMemberItem(TripMember member, bool isOwner) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      margin: const EdgeInsets.only(bottom: 9),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       decoration: BoxDecoration(
         color: AppColors.cardSoft,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: AppColors.lightBlue,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(
-                  Icons.person_rounded,
-                  color: AppColors.primaryDark,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  member.memberName,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.title,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.chipBackground,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  getKoreanRole(member.role),
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.chipText,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          if (isOwner) ...[
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton.icon(
-                  onPressed: () {
-                    showEditMemberDialog(member);
-                  },
-                  icon: const Icon(Icons.edit_rounded, size: 16),
-                  label: const Text('수정'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.primaryDark,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: () {
-                    deleteMember(member);
-                  },
-                  icon: const Icon(Icons.delete_outline_rounded, size: 16),
-                  label: const Text('삭제'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.redAccent,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                ),
-              ],
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.lightBlue,
+              borderRadius: BorderRadius.circular(13),
             ),
+            child: const Icon(
+              Icons.person_rounded,
+              color: AppColors.primaryDark,
+              size: 21,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              member.memberName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: AppColors.title,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          _buildRoleChip(member.role),
+          if (isOwner) ...[
+            const SizedBox(width: 2),
+            _buildMemberPopupMenu(member),
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildRoleChip(String role) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.chipBackground,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        getKoreanRole(role),
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          color: AppColors.chipText,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMemberPopupMenu(TripMember member) {
+    return PopupMenuButton<String>(
+      tooltip: '멤버 관리',
+      color: Colors.white,
+      surfaceTintColor: Colors.white,
+      icon: const Icon(
+        Icons.more_vert_rounded,
+        color: AppColors.iconGray,
+        size: 22,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      onSelected: (value) {
+        if (value == 'edit') {
+          showEditMemberDialog(member);
+        }
+
+        if (value == 'delete') {
+          deleteMember(member);
+        }
+      },
+      itemBuilder: (context) {
+        return const [
+          PopupMenuItem(
+            value: 'edit',
+            child: Row(
+              children: [
+                Icon(
+                  Icons.edit_rounded,
+                  size: 18,
+                  color: AppColors.primaryDark,
+                ),
+                SizedBox(width: 10),
+                Text('수정'),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: 'delete',
+            child: Row(
+              children: [
+                Icon(
+                  Icons.delete_outline_rounded,
+                  size: 18,
+                  color: AppColors.danger,
+                ),
+                SizedBox(width: 10),
+                Text('삭제', style: TextStyle(color: AppColors.danger)),
+              ],
+            ),
+          ),
+        ];
+      },
     );
   }
 
