@@ -232,6 +232,133 @@ class _HomeScreenState extends State<HomeScreen> {
     return confirmedList.first;
   }
 
+  String getTripMoodImage(TripRoom trip) {
+    final text = '${trip.title} ${trip.destination} ${trip.description}'
+        .toLowerCase();
+
+    if (text.contains('바다') ||
+        text.contains('해변') ||
+        text.contains('해수욕장') ||
+        text.contains('휴양') ||
+        text.contains('제주') ||
+        text.contains('제주도') ||
+        text.contains('부산') ||
+        text.contains('해운대') ||
+        text.contains('광안리') ||
+        text.contains('강릉') ||
+        text.contains('속초') ||
+        text.contains('여수') ||
+        text.contains('괌') ||
+        text.contains('오키나와') ||
+        text.contains('다낭') ||
+        text.contains('beach')) {
+      return 'assets/images/beach.png';
+    }
+
+    if (text.contains('서울') ||
+        text.contains('도시') ||
+        text.contains('도심') ||
+        text.contains('야경') ||
+        text.contains('홍대') ||
+        text.contains('강남') ||
+        text.contains('도쿄') ||
+        text.contains('오사카') ||
+        text.contains('뉴욕') ||
+        text.contains('방콕') ||
+        text.contains('싱가포르') ||
+        text.contains('city')) {
+      return 'assets/images/city.png';
+    }
+
+    if (text.contains('산') ||
+        text.contains('숲') ||
+        text.contains('호수') ||
+        text.contains('자연') ||
+        text.contains('캠핑') ||
+        text.contains('트레킹') ||
+        text.contains('등산') ||
+        text.contains('설악') ||
+        text.contains('스위스') ||
+        text.contains('알프스') ||
+        text.contains('nature')) {
+      return 'assets/images/nature.png';
+    }
+
+    if (text.contains('문화') ||
+        text.contains('역사') ||
+        text.contains('전통') ||
+        text.contains('한옥') ||
+        text.contains('경주') ||
+        text.contains('전주') ||
+        text.contains('교토') ||
+        text.contains('로마') ||
+        text.contains('파리') ||
+        text.contains('프라하') ||
+        text.contains('culture')) {
+      return 'assets/images/culture.png';
+    }
+
+    return 'assets/images/default.png';
+  }
+
+  String getTripMoodTag(TripRoom trip) {
+    final text = '${trip.title} ${trip.destination} ${trip.description}'
+        .toLowerCase();
+
+    if (text.contains('바다') ||
+        text.contains('해변') ||
+        text.contains('제주') ||
+        text.contains('부산') ||
+        text.contains('강릉') ||
+        text.contains('속초') ||
+        text.contains('여수')) {
+      return '#해변여행';
+    }
+
+    if (text.contains('서울') ||
+        text.contains('도시') ||
+        text.contains('도심') ||
+        text.contains('야경') ||
+        text.contains('도쿄') ||
+        text.contains('오사카')) {
+      return '#도시여행';
+    }
+
+    if (text.contains('산') ||
+        text.contains('숲') ||
+        text.contains('호수') ||
+        text.contains('자연') ||
+        text.contains('캠핑')) {
+      return '#자연여행';
+    }
+
+    if (text.contains('문화') ||
+        text.contains('역사') ||
+        text.contains('전통') ||
+        text.contains('한옥') ||
+        text.contains('경주') ||
+        text.contains('전주') ||
+        text.contains('교토')) {
+      return '#문화여행';
+    }
+
+    return '#함께여행';
+  }
+
+  TripRoom? getSelectedTrip(List<TripRoom> tripRooms) {
+    if (tripRooms.isEmpty) {
+      return null;
+    }
+
+    for (final trip in tripRooms) {
+      if (trip.id == widget.selectedTripRoomId) {
+        return trip;
+      }
+    }
+
+    return tripRooms.first;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -249,40 +376,29 @@ class _HomeScreenState extends State<HomeScreen> {
             }
 
             final tripRooms = snapshot.data ?? [];
+            final selectedTrip = getSelectedTrip(tripRooms);
 
             return SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeroHeader(),
+                  _buildHeroHeader(selectedTrip),
                   const SizedBox(height: 20),
                   _buildTripActionButtons(),
-                  const SizedBox(height: 20),
-                  _buildSectionTitle('나의 여행방', '내가 만들거나 참여한 그룹 여행을 선택해보세요'),
+                  const SizedBox(height: 22),
+                  _buildSectionTitle(
+                    title: '나의 여행방',
+                    subtitle: '내가 만들거나 참여한 그룹 여행을 선택해보세요',
+                    actionText: tripRooms.length > 1
+                        ? '전체 ${tripRooms.length}개'
+                        : null,
+                  ),
                   const SizedBox(height: 12),
                   if (tripRooms.isEmpty)
                     _buildEmptyTripCard()
                   else
                     ...tripRooms.map((trip) => _buildTripCard(trip)),
-                  const SizedBox(height: 24),
-                  _buildQuickSection(),
-                  const SizedBox(height: 24),
-                  _buildSectionTitle('여행 준비 현황', '선택한 여행방의 정보를 확인해요'),
-                  const SizedBox(height: 12),
-                  _buildInfoCard(
-                    icon: Icons.calendar_today_rounded,
-                    title: '다가오는 일정',
-                    subtitle: '선택한 여행방의 일정을 확인해요.',
-                    badgeText: '일정',
-                  ),
-                  const SizedBox(height: 12),
-                  _buildInfoCard(
-                    icon: Icons.account_balance_wallet_rounded,
-                    title: '비용 정산',
-                    subtitle: '선택한 여행방의 정산 내역을 확인해요.',
-                    badgeText: '정산',
-                  ),
                 ],
               ),
             );
@@ -292,95 +408,109 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeroHeader() {
+  Widget _buildHeroHeader(TripRoom? selectedTrip) {
+    final String title = '${widget.loginUser.name}님의 여행 준비';
+
+    final String subtitle = selectedTrip == null
+        ? '함께 떠날 여행을 친구들과 계획해보세요.'
+        : '${selectedTrip.title}을 친구들과 함께 준비해보세요.';
+
+    final String imagePath = selectedTrip == null
+        ? 'assets/images/default.png'
+        : getTripMoodImage(selectedTrip);
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      height: 190,
       decoration: BoxDecoration(
-        gradient: AppColors.heroGradient,
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.22),
-            blurRadius: 20,
+            color: AppColors.primary.withOpacity(0.20),
+            blurRadius: 22,
             offset: const Offset(0, 10),
           ),
         ],
       ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -20,
-            top: -24,
-            child: Container(
-              width: 86,
-              height: 86,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.12),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Positioned(
-            right: 34,
-            bottom: -38,
-            child: Container(
-              width: 74,
-              height: 74,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.10),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: Stack(
+          children: [
+            Positioned.fill(child: Image.asset(imagePath, fit: BoxFit.cover)),
+            Positioned.fill(
+              child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.18),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: Colors.white.withOpacity(0.28)),
-                ),
-                child: const Text(
-                  'GROUP TRIP PLANNER',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: 0.4,
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white.withOpacity(0.86),
+                      Colors.white.withOpacity(0.64),
+                      Colors.white.withOpacity(0.20),
+                    ],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
                   ),
                 ),
               ),
-              const SizedBox(height: 14),
-              Text(
-                '${widget.loginUser.name}님의 여행',
-                style: const TextStyle(
-                  fontSize: 25,
-                  height: 1.15,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: -0.8,
-                ),
+            ),
+            Positioned(
+              left: 18,
+              top: 18,
+              right: 18,
+              bottom: 18,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.70),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: Colors.white.withOpacity(0.85)),
+                    ),
+                    child: const Text(
+                      'GROUP TRIP PLANNER',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.primaryDark,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 25,
+                      height: 1.18,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.title,
+                      letterSpacing: -0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      height: 1.45,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.body,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                '여행방을 만들거나 초대 코드로 참여해보세요.',
-                style: TextStyle(
-                  fontSize: 13,
-                  height: 1.4,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white.withOpacity(0.86),
-                  letterSpacing: -0.2,
-                ),
-              ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -488,7 +618,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(17),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(28),
@@ -507,26 +637,8 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (isSelected) ...[
-            Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.chipBackground,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: const Text(
-                '선택 중인 여행방',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.chipText,
-                  letterSpacing: -0.2,
-                ),
-              ),
-            ),
-          ],
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 width: 56,
@@ -552,36 +664,50 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       trip.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 20,
                         height: 1.2,
                         fontWeight: FontWeight.w900,
                         color: AppColors.title,
-                        letterSpacing: -0.5,
+                        letterSpacing: -0.6,
                       ),
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 6),
                     Text(
                       trip.description,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 13,
+                        height: 1.35,
                         color: AppColors.subtitle,
                         letterSpacing: -0.2,
                       ),
                     ),
+                    const SizedBox(height: 9),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        _buildSmallTag(getTripMoodTag(trip)),
+                        if (isSelected) _buildSmallTag('선택중'),
+                      ],
+                    ),
                   ],
                 ),
               ),
-              _buildStatusChip(isOwner ? '방장' : '참여중'),
-              if (isOwner) ...[
-                const SizedBox(width: 4),
-                _buildTripRoomPopupMenu(trip),
-              ],
+              const SizedBox(width: 6),
+              Column(
+                children: [
+                  _buildStatusChip(isOwner ? '방장' : '참여중'),
+                  if (isOwner) _buildTripRoomPopupMenu(trip),
+                ],
+              ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 17),
           _buildConfirmedDestinationBox(trip),
           const SizedBox(height: 10),
           _buildDetailBox(
@@ -601,6 +727,25 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSmallTag(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.primarySoft,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
+          color: AppColors.primaryDark,
+          letterSpacing: -0.2,
+        ),
       ),
     );
   }
@@ -750,82 +895,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickSection() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildQuickCard(
-            icon: Icons.event_available_rounded,
-            title: '일정',
-            value: '공동 관리',
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildQuickCard(
-            icon: Icons.how_to_vote_rounded,
-            title: '여행지',
-            value: '투표 선택',
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildQuickCard(
-            icon: Icons.payments_rounded,
-            title: '정산',
-            value: '비용 관리',
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildQuickCard({
-    required IconData icon,
-    required String title,
-    required String value,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF1E3A5F).withOpacity(0.05),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: AppColors.primaryDark, size: 23),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: AppColors.subtitle,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w900,
-              color: AppColors.title,
-              letterSpacing: -0.3,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildEmptyTripCard() {
     return Container(
       width: double.infinity,
@@ -840,86 +909,6 @@ class _HomeScreenState extends State<HomeScreen> {
           '아직 참여 중인 여행방이 없습니다.',
           style: TextStyle(fontSize: 15, color: AppColors.subtitle),
         ),
-      ),
-    );
-  }
-
-  Widget _buildInfoCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required String badgeText,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(17),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF1E3A5F).withOpacity(0.05),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppColors.primarySoft,
-              borderRadius: BorderRadius.circular(17),
-            ),
-            child: Icon(icon, color: AppColors.primaryDark, size: 24),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.title,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    height: 1.4,
-                    color: AppColors.subtitle,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.chipBackground,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(
-              badgeText,
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: AppColors.chipText,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -987,28 +976,51 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title, String subtitle) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildSectionTitle({
+    required String title,
+    required String subtitle,
+    String? actionText,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 19,
-            fontWeight: FontWeight.w900,
-            color: AppColors.title,
-            letterSpacing: -0.5,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.title,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.subtitle,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 5),
-        Text(
-          subtitle,
-          style: const TextStyle(
-            fontSize: 13,
-            color: AppColors.subtitle,
-            letterSpacing: -0.2,
+        if (actionText != null) ...[
+          const SizedBox(width: 10),
+          Text(
+            actionText,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: AppColors.subtitle,
+              letterSpacing: -0.2,
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
