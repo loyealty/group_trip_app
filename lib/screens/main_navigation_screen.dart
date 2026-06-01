@@ -18,6 +18,7 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int currentIndex = 0;
   int selectedTripRoomId = 0;
+  String selectedTripRoomTitle = '';
 
   void moveToScheduleTab() {
     setState(() {
@@ -25,9 +26,17 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     });
   }
 
-  void changeTripRoom(int tripRoomId) {
+  void changeTripRoom(int tripRoomId, String tripRoomTitle) {
     setState(() {
       selectedTripRoomId = tripRoomId;
+      selectedTripRoomTitle = tripRoomTitle;
+    });
+  }
+
+  void clearTripRoom() {
+    setState(() {
+      selectedTripRoomId = 0;
+      selectedTripRoomTitle = '';
     });
   }
 
@@ -44,12 +53,17 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         loginUser: widget.loginUser,
         selectedTripRoomId: selectedTripRoomId,
         onTripRoomSelected: changeTripRoom,
+        onTripRoomClear: clearTripRoom,
         onScheduleButtonPressed: moveToScheduleTab,
       ),
       ScheduleScreen(tripRoomId: selectedTripRoomId),
       TravelScreen(tripRoomId: selectedTripRoomId, loginUser: widget.loginUser),
       ExpenseScreen(tripRoomId: selectedTripRoomId),
-      MyScreen(tripRoomId: selectedTripRoomId, loginUser: widget.loginUser),
+      MyScreen(
+        tripRoomId: selectedTripRoomId,
+        tripRoomTitle: selectedTripRoomTitle,
+        loginUser: widget.loginUser,
+      ),
     ];
 
     return Scaffold(

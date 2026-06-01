@@ -11,7 +11,8 @@ import 'trip_room_create_screen.dart';
 class HomeScreen extends StatefulWidget {
   final AppUser loginUser;
   final int selectedTripRoomId;
-  final ValueChanged<int> onTripRoomSelected;
+  final void Function(int tripRoomId, String tripRoomTitle) onTripRoomSelected;
+  final VoidCallback onTripRoomClear;
   final VoidCallback onScheduleButtonPressed;
 
   const HomeScreen({
@@ -19,6 +20,7 @@ class HomeScreen extends StatefulWidget {
     required this.loginUser,
     required this.selectedTripRoomId,
     required this.onTripRoomSelected,
+    required this.onTripRoomClear,
     required this.onScheduleButtonPressed,
   });
 
@@ -120,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (!mounted) return;
 
-      widget.onTripRoomSelected(joinedTripRoom.id);
+      widget.onTripRoomSelected(joinedTripRoom.id, joinedTripRoom.title);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${joinedTripRoom.title} 여행방에 참여했습니다.')),
@@ -173,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
 
       if (trip.id == widget.selectedTripRoomId) {
-        widget.onTripRoomSelected(0);
+        widget.onTripRoomClear();
       }
 
       ScaffoldMessenger.of(
@@ -191,7 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void openTripSchedule(TripRoom trip) {
-    widget.onTripRoomSelected(trip.id);
+    widget.onTripRoomSelected(trip.id, trip.title);
     widget.onScheduleButtonPressed();
 
     ScaffoldMessenger.of(context).showSnackBar(

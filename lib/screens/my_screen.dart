@@ -11,11 +11,13 @@ import 'login_screen.dart';
 
 class MyScreen extends StatefulWidget {
   final int tripRoomId;
+  final String tripRoomTitle;
   final AppUser loginUser;
 
   const MyScreen({
     super.key,
     required this.tripRoomId,
+    required this.tripRoomTitle,
     required this.loginUser,
   });
 
@@ -52,6 +54,14 @@ class _MyScreenState extends State<MyScreen> {
       (member) =>
           member.userId == widget.loginUser.id && member.role == 'OWNER',
     );
+  }
+
+  String getSelectedTripRoomName() {
+    if (widget.tripRoomTitle.trim().isEmpty) {
+      return '선택 없음';
+    }
+
+    return widget.tripRoomTitle;
   }
 
   void logout() {
@@ -318,7 +328,7 @@ class _MyScreenState extends State<MyScreen> {
                       child: AppStatCard(
                         icon: Icons.card_travel_rounded,
                         title: '선택 여행방',
-                        value: '${widget.tripRoomId}번',
+                        value: getSelectedTripRoomName(),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -401,6 +411,7 @@ class _MyScreenState extends State<MyScreen> {
     }
 
     final members = snapshot.data ?? [];
+    final String tripRoomName = getSelectedTripRoomName();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -449,7 +460,7 @@ class _MyScreenState extends State<MyScreen> {
                   const SizedBox(width: 14),
                   Expanded(
                     child: Text(
-                      '현재 여행방 ${widget.tripRoomId}번의 참여 멤버',
+                      '$tripRoomName 참여 멤버',
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
