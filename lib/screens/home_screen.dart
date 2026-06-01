@@ -575,6 +575,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               _buildStatusChip(isOwner ? '방장' : '참여중'),
+              if (isOwner) ...[
+                const SizedBox(width: 4),
+                _buildTripRoomPopupMenu(trip),
+              ],
             ],
           ),
           const SizedBox(height: 18),
@@ -589,34 +593,6 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 10),
           _buildInviteCodeBox(trip),
           const SizedBox(height: 14),
-          if (isOwner)
-            Row(
-              children: [
-                TextButton.icon(
-                  onPressed: () {
-                    moveToEditTripRoom(trip);
-                  },
-                  icon: const Icon(Icons.edit_rounded, size: 17),
-                  label: const Text('수정'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.primaryDark,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: () {
-                    deleteTripRoom(trip);
-                  },
-                  icon: const Icon(Icons.delete_outline_rounded, size: 17),
-                  label: const Text('삭제'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.redAccent,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                ),
-              ],
-            ),
-          if (isOwner) const SizedBox(height: 8),
           AppPrimaryButton(
             text: isSelected ? '선택한 여행 일정 보기' : '이 여행방 일정 보기',
             icon: Icons.arrow_forward_rounded,
@@ -626,6 +602,61 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTripRoomPopupMenu(TripRoom trip) {
+    return PopupMenuButton<String>(
+      tooltip: '여행방 관리',
+      color: Colors.white,
+      surfaceTintColor: Colors.white,
+      icon: const Icon(
+        Icons.more_vert_rounded,
+        color: AppColors.iconGray,
+        size: 22,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      onSelected: (value) {
+        if (value == 'edit') {
+          moveToEditTripRoom(trip);
+        }
+
+        if (value == 'delete') {
+          deleteTripRoom(trip);
+        }
+      },
+      itemBuilder: (context) {
+        return const [
+          PopupMenuItem(
+            value: 'edit',
+            child: Row(
+              children: [
+                Icon(
+                  Icons.edit_rounded,
+                  size: 18,
+                  color: AppColors.primaryDark,
+                ),
+                SizedBox(width: 10),
+                Text('수정'),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: 'delete',
+            child: Row(
+              children: [
+                Icon(
+                  Icons.delete_outline_rounded,
+                  size: 18,
+                  color: AppColors.danger,
+                ),
+                SizedBox(width: 10),
+                Text('삭제', style: TextStyle(color: AppColors.danger)),
+              ],
+            ),
+          ),
+        ];
+      },
     );
   }
 
